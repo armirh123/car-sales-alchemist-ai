@@ -10,6 +10,7 @@ import DashboardMetrics from "@/components/DashboardMetrics";
 import LeadManagement from "@/components/LeadManagement";
 import AIAssistant from "@/components/AIAssistant";
 import InventoryOverview from "@/components/InventoryOverview";
+import GlobalSearch from "@/components/GlobalSearch";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -29,6 +30,12 @@ const Index = () => {
                 <p className="text-sm text-slate-600">Intelligent Sales Management</p>
               </div>
             </div>
+            
+            {/* Global Search Bar */}
+            <div className="flex-1 max-w-md mx-8">
+              <GlobalSearch />
+            </div>
+
             <div className="flex items-center space-x-4">
               <Badge variant="secondary" className="bg-green-100 text-green-800">
                 Active Account
