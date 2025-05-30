@@ -1,10 +1,17 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Car, Search, ArrowLeft, Filter, SortAsc } from "lucide-react";
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Search, Filter, Car } from "lucide-react";
 
 interface Car {
   id: string;
@@ -17,6 +24,7 @@ interface Car {
   description: string;
   mileage: number;
   color: string;
+  images?: string[];
 }
 
 interface CarListingPageProps {
@@ -27,51 +35,50 @@ interface CarListingPageProps {
 
 const CarListingPage = ({ category, cars, onBack }: CarListingPageProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("price");
+  const [sortBy, setSortBy] = useState("price-low");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  // Filter cars by category and search term
-  const filteredCars = cars.filter(car => 
-    car.category === category &&
-    (car.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     car.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     car.color.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  // Sort cars
-  const sortedCars = [...filteredCars].sort((a, b) => {
-    switch (sortBy) {
-      case "price":
-        return a.price - b.price;
-      case "year":
-        return b.year - a.year;
-      case "mileage":
-        return a.mileage - b.mileage;
-      default:
-        return 0;
-    }
-  });
+  const filteredCars = cars
+    .filter(car => car.category === category)
+    .filter(car => 
+      car.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      car.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      car.color.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter(car => statusFilter === "all" || car.status === statusFilter)
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "price-low":
+          return a.price - b.price;
+        case "price-high":
+          return b.price - a.price;
+        case "year-new":
+          return b.year - a.year;
+        case "year-old":
+          return a.year - b.year;
+        case "mileage-low":
+          return a.mileage - b.mileage;
+        default:
+          return 0;
+      }
+    });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'available': return 'bg-green-100 text-green-800';
-      case 'sold': return 'bg-red-100 text-red-800';
       case 'reserved': return 'bg-orange-100 text-orange-800';
+      case 'sold': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
+  const getDefaultImage = (make: string) => {
+    // Return a placeholder or default car image based on make
+    return `https://images.unsplash.com/photo-1494905998402-395d579af36f?w=400&h=300&fit=crop&crop=center`;
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="outline" onClick={onBack}>
@@ -79,15 +86,15 @@ const CarListingPage = ({ category, cars, onBack }: CarListingPageProps) => {
             Back to Inventory
           </Button>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">{category}</h2>
-            <p className="text-slate-600">{sortedCars.length} vehicles available</p>
+            <h2 className="text-2xl font-bold text-slate-900">{category} Inventory</h2>
+            <p className="text-slate-600">{filteredCars.length} vehicles available</p>
           </div>
         </div>
       </div>
 
-      {/* Search and Filter Bar */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
+      {/* Search and Filter Controls */}
+      <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+        <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
           <Input
             placeholder="Search by make, model, or color..."
@@ -96,81 +103,101 @@ const CarListingPage = ({ category, cars, onBack }: CarListingPageProps) => {
             className="pl-10"
           />
         </div>
-        <div className="flex items-center space-x-2">
-          <SortAsc className="h-4 w-4 text-slate-400" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-md text-sm"
-          >
-            <option value="price">Sort by Price</option>
-            <option value="year">Sort by Year</option>
-            <option value="mileage">Sort by Mileage</option>
-          </select>
-        </div>
+        
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-full md:w-48">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="price-low">Price: Low to High</SelectItem>
+            <SelectItem value="price-high">Price: High to Low</SelectItem>
+            <SelectItem value="year-new">Year: Newest First</SelectItem>
+            <SelectItem value="year-old">Year: Oldest First</SelectItem>
+            <SelectItem value="mileage-low">Mileage: Low to High</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full md:w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="available">Available</SelectItem>
+            <SelectItem value="reserved">Reserved</SelectItem>
+            <SelectItem value="sold">Sold</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Car Grid */}
-      {sortedCars.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedCars.map((car) => (
-            <Card key={car.id} className="hover:shadow-lg transition-shadow duration-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
-                    {car.year} {car.make} {car.model}
-                  </CardTitle>
-                  <Car className="h-5 w-5 text-slate-400" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredCars.map((car) => (
+          <Card key={car.id} className="hover:shadow-lg transition-shadow duration-200">
+            <div className="relative">
+              <img
+                src={car.images && car.images.length > 0 ? car.images[0] : getDefaultImage(car.make)}
+                alt={`${car.make} ${car.model}`}
+                className="w-full h-48 object-cover rounded-t-lg"
+              />
+              <Badge className={`absolute top-2 right-2 ${getStatusColor(car.status)}`}>
+                {car.status.toUpperCase()}
+              </Badge>
+              {car.images && car.images.length > 1 && (
+                <Badge variant="secondary" className="absolute bottom-2 right-2 bg-black/50 text-white">
+                  +{car.images.length - 1} more
+                </Badge>
+              )}
+            </div>
+            
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">{car.year} {car.make} {car.model}</CardTitle>
+                <Car className="h-4 w-4 text-slate-400" />
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl font-bold text-green-600">
+                  ${car.price.toLocaleString()}
+                </span>
+              </div>
+            </CardHeader>
+            
+            <CardContent>
+              <div className="space-y-2 text-sm text-slate-600">
+                <div className="flex justify-between">
+                  <span>Color:</span>
+                  <span className="font-medium">{car.color}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <CardDescription className="text-lg font-semibold text-blue-600">
-                    {formatPrice(car.price)}
-                  </CardDescription>
-                  <Badge className={getStatusColor(car.status)} variant="secondary">
-                    {car.status.toUpperCase()}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-slate-500">Mileage:</span>
-                    <p className="font-medium">{car.mileage.toLocaleString()} mi</p>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Color:</span>
-                    <p className="font-medium">{car.color || 'Not specified'}</p>
-                  </div>
+                <div className="flex justify-between">
+                  <span>Mileage:</span>
+                  <span className="font-medium">{car.mileage.toLocaleString()} miles</span>
                 </div>
                 {car.description && (
-                  <div>
-                    <span className="text-slate-500 text-sm">Description:</span>
-                    <p className="text-sm text-slate-700 mt-1 line-clamp-2">
-                      {car.description}
-                    </p>
-                  </div>
+                  <p className="text-xs text-slate-500 line-clamp-2 mt-2">
+                    {car.description}
+                  </p>
                 )}
-                <div className="flex space-x-2 pt-2">
-                  <Button size="sm" className="flex-1">
-                    View Details
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
-                    Contact Dealer
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
+              </div>
+              
+              <div className="mt-4 flex space-x-2">
+                <Button size="sm" className="flex-1">
+                  View Details
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1">
+                  Reserve
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredCars.length === 0 && (
         <div className="text-center py-12">
           <Car className="h-12 w-12 text-slate-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-slate-900 mb-2">No vehicles found</h3>
-          <p className="text-slate-500">
-            {searchTerm 
-              ? `No vehicles match your search "${searchTerm}" in ${category}`
-              : `No vehicles available in ${category} category`
-            }
+          <p className="text-slate-600">
+            No vehicles match your current search and filter criteria.
           </p>
         </div>
       )}
