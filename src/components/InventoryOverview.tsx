@@ -1,60 +1,165 @@
-
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Car, TrendingUp, TrendingDown, Package, AlertCircle } from "lucide-react";
+import { Car, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import ManageStockDialog from "./ManageStockDialog";
+import CarListingPage from "./CarListingPage";
+
+interface Car {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  price: number;
+  category: string;
+  status: string;
+  description: string;
+  mileage: number;
+  color: string;
+}
 
 const InventoryOverview = () => {
-  const inventoryCategories = [
+  const [cars, setCars] = useState<Car[]>([
+    // Sample cars for demonstration
     {
-      type: "Sedans",
-      count: 45,
-      trend: "up",
-      change: "+12%",
-      popular: "Toyota Camry, Honda Accord",
-      status: "optimal"
+      id: "1",
+      make: "Toyota",
+      model: "Camry",
+      year: 2023,
+      price: 28500,
+      category: "Sedans",
+      status: "available",
+      description: "Reliable family sedan with excellent fuel economy",
+      mileage: 15000,
+      color: "Silver"
     },
     {
-      type: "SUVs",
-      count: 28,
-      trend: "down",
-      change: "-23%",
-      popular: "Ford Explorer, Jeep Cherokee",
-      status: "low"
+      id: "2",
+      make: "Honda",
+      model: "Accord",
+      year: 2024,
+      price: 32000,
+      category: "Sedans",
+      status: "available",
+      description: "Premium sedan with advanced safety features",
+      mileage: 8000,
+      color: "Black"
     },
     {
-      type: "Electric",
-      count: 15,
-      trend: "up",
-      change: "+45%",
-      popular: "Tesla Model 3, Nissan Leaf",
-      status: "optimal"
+      id: "3",
+      make: "Ford",
+      model: "Explorer",
+      year: 2023,
+      price: 38000,
+      category: "SUVs",
+      status: "available",
+      description: "Spacious SUV perfect for families",
+      mileage: 22000,
+      color: "Blue"
     },
     {
-      type: "Trucks",
-      count: 32,
-      trend: "up",
-      change: "+8%",
-      popular: "Ford F-150, Chevy Silverado",
-      status: "optimal"
+      id: "4",
+      make: "Tesla",
+      model: "Model 3",
+      year: 2024,
+      price: 45000,
+      category: "Electric",
+      status: "available",
+      description: "All-electric sedan with autopilot capabilities",
+      mileage: 5000,
+      color: "White"
     },
     {
-      type: "Luxury",
-      count: 12,
-      trend: "down",
-      change: "-5%",
-      popular: "BMW 5 Series, Mercedes C-Class",
-      status: "critical"
+      id: "5",
+      make: "Ford",
+      model: "F-150",
+      year: 2023,
+      price: 42000,
+      category: "Trucks",
+      status: "reserved",
+      description: "America's best-selling truck",
+      mileage: 18000,
+      color: "Red"
     },
     {
-      type: "Sports",
-      count: 8,
-      trend: "up",
-      change: "+20%",
-      popular: "Mustang, Corvette",
-      status: "low"
+      id: "6",
+      make: "BMW",
+      model: "5 Series",
+      year: 2024,
+      price: 55000,
+      category: "Luxury",
+      status: "available",
+      description: "Luxury sedan with premium interior",
+      mileage: 3000,
+      color: "Grey"
     }
-  ];
+  ]);
+
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const handleAddCar = (newCar: Car) => {
+    setCars(prev => [...prev, newCar]);
+  };
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleBackToInventory = () => {
+    setSelectedCategory(null);
+  };
+
+  // Calculate inventory statistics
+  const getInventoryStats = () => {
+    const categories = ["Sedans", "SUVs", "Electric", "Trucks", "Luxury", "Sports"];
+    return categories.map(category => {
+      const categoryCars = cars.filter(car => car.category === category);
+      const availableCount = categoryCars.filter(car => car.status === "available").length;
+      
+      // Mock trend data
+      const trendData = {
+        "Sedans": { trend: "up", change: "+12%" },
+        "SUVs": { trend: "down", change: "-23%" },
+        "Electric": { trend: "up", change: "+45%" },
+        "Trucks": { trend: "up", change: "+8%" },
+        "Luxury": { trend: "down", change: "-5%" },
+        "Sports": { trend: "up", change: "+20%" }
+      };
+
+      const getStatus = (count: number) => {
+        if (count === 0) return "critical";
+        if (count < 5) return "low";
+        return "optimal";
+      };
+
+      const getPopularModels = () => {
+        const models = categoryCars.slice(0, 2).map(car => `${car.make} ${car.model}`);
+        return models.length > 0 ? models.join(", ") : "No vehicles";
+      };
+
+      return {
+        type: category,
+        count: availableCount,
+        trend: trendData[category as keyof typeof trendData]?.trend || "up",
+        change: trendData[category as keyof typeof trendData]?.change || "0%",
+        popular: getPopularModels(),
+        status: getStatus(availableCount)
+      };
+    });
+  };
+
+  const inventoryCategories = getInventoryStats();
+
+  if (selectedCategory) {
+    return (
+      <CarListingPage
+        category={selectedCategory}
+        cars={cars}
+        onBack={handleBackToInventory}
+      />
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -76,10 +181,7 @@ const InventoryOverview = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-slate-900">Inventory Overview</h2>
         <div className="flex space-x-2">
-          <Button variant="outline">
-            <Package className="h-4 w-4 mr-2" />
-            Manage Stock
-          </Button>
+          <ManageStockDialog onAddCar={handleAddCar} />
           <Button className="bg-blue-600 hover:bg-blue-700">
             <AlertCircle className="h-4 w-4 mr-2" />
             Stock Alerts
@@ -89,7 +191,11 @@ const InventoryOverview = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {inventoryCategories.map((category, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
+          <Card 
+            key={index} 
+            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            onClick={() => handleCategoryClick(category.type)}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{category.type}</CardTitle>
