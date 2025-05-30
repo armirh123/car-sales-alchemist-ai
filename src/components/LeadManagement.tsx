@@ -4,12 +4,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Phone, Mail, Calendar, Plus, Filter } from "lucide-react";
+import { Search, Phone, Mail, Calendar, Filter, Edit, Trash2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import AddLeadDialog from "./AddLeadDialog";
+import { useToast } from "@/hooks/use-toast";
+
+interface Lead {
+  id: number;
+  name: string;
+  contact: string;
+  email: string;
+  phone: string;
+  interest: string;
+  status: string;
+  lastContact: string;
+  value: string;
+}
 
 const LeadManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const { toast } = useToast();
 
-  const leads = [
+  const [leads, setLeads] = useState<Lead[]>([
     {
       id: 1,
       name: "Johnson Motors",
@@ -54,7 +77,19 @@ const LeadManagement = () => {
       lastContact: "1 day ago",
       value: "$200,000"
     }
-  ];
+  ]);
+
+  const handleAddLead = (newLead: Lead) => {
+    setLeads(prev => [...prev, newLead]);
+  };
+
+  const handleDeleteLead = (id: number) => {
+    setLeads(prev => prev.filter(lead => lead.id !== id));
+    toast({
+      title: "Lead deleted",
+      description: "The lead has been removed from your pipeline"
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -65,20 +100,23 @@ const LeadManagement = () => {
     }
   };
 
-  const filteredLeads = leads.filter(lead =>
-    lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.interest.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter leads by search term and status
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.interest.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lead.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-slate-900">Lead Management</h2>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Lead
-        </Button>
+        <AddLeadDialog onAddLead={handleAddLead} />
       </div>
 
       <div className="flex items-center space-x-4">
@@ -91,10 +129,18 @@ const LeadManagement = () => {
             className="pl-10"
           />
         </div>
-        <Button variant="outline">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="hot">Hot</SelectItem>
+            <SelectItem value="warm">Warm</SelectItem>
+            <SelectItem value="cold">Cold</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid gap-4">
@@ -153,12 +199,37 @@ const LeadManagement = () => {
                     <Calendar className="h-4 w-4 mr-1" />
                     Schedule
                   </Button>
+                  <Button size="sm" variant="outline">
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleDeleteLead(lead.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {filteredLeads.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-lg font-medium text-slate-900 mb-2">No leads found</div>
+          <p className="text-slate-500">
+            {searchTerm || statusFilter !== "all" 
+              ? "No leads match your current filters" 
+              : "Start by adding your first lead"
+            }
+          </p>
+        </div>
+      )}
     </div>
   );
 };

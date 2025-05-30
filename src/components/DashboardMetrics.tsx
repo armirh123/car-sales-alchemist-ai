@@ -1,10 +1,16 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, DollarSign, Users, Car, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, DollarSign, Users, Car, Target, RefreshCw } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const DashboardMetrics = () => {
-  const metrics = [
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
+
+  const [metrics, setMetrics] = useState([
     {
       title: "Total Sales",
       value: "$2.4M",
@@ -37,15 +43,75 @@ const DashboardMetrics = () => {
       icon: Target,
       description: "Lead to sale"
     }
-  ];
+  ]);
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Generate new mock data
+    const newMetrics = [
+      {
+        title: "Total Sales",
+        value: `$${(2.4 + (Math.random() - 0.5) * 0.5).toFixed(1)}M`,
+        change: `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 20 - 10).toFixed(1)}%`,
+        trend: Math.random() > 0.5 ? "up" : "down",
+        icon: DollarSign,
+        description: "This month"
+      },
+      {
+        title: "Active Leads",
+        value: `${Math.floor(120 + Math.random() * 60)}`,
+        change: `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 15 - 7.5).toFixed(1)}%`,
+        trend: Math.random() > 0.5 ? "up" : "down",
+        icon: Users,
+        description: "Qualified prospects"
+      },
+      {
+        title: "Cars Sold",
+        value: `${Math.floor(50 + Math.random() * 40)}`,
+        change: `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 10 - 5).toFixed(1)}%`,
+        trend: Math.random() > 0.5 ? "up" : "down",
+        icon: Car,
+        description: "This month"
+      },
+      {
+        title: "Conversion Rate",
+        value: `${(20 + Math.random() * 15).toFixed(1)}%`,
+        change: `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 8 - 4).toFixed(1)}%`,
+        trend: Math.random() > 0.5 ? "up" : "down",
+        icon: Target,
+        description: "Lead to sale"
+      }
+    ];
+
+    setMetrics(newMetrics);
+    setIsRefreshing(false);
+    
+    toast({
+      title: "Data refreshed",
+      description: "Dashboard metrics have been updated with the latest data"
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-slate-900">Sales Dashboard</h2>
-        <Badge variant="outline" className="text-blue-600 border-blue-200">
-          Live Data
-        </Badge>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
+            className="text-blue-600 border-blue-200"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Live Data'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
