@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Car, TrendingUp, Users, MessageCircle, Target, BarChart3, PlusCircle, Search } from "lucide-react";
+import { Car, TrendingUp, Users, MessageCircle, Target, BarChart3, PlusCircle, Search, Menu } from "lucide-react";
 import DashboardMetrics from "@/components/DashboardMetrics";
 import LeadManagement from "@/components/LeadManagement";
 import AIAssistant from "@/components/AIAssistant";
@@ -21,7 +21,7 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="bg-blue-600 p-4 rounded-lg inline-block mb-4">
             <Car className="h-8 w-8 text-white animate-pulse" />
@@ -43,13 +43,16 @@ const Index = () => {
                 <div className="bg-blue-600 p-2 rounded-lg">
                   <Car className="h-6 w-6 text-white" />
                 </div>
-                <div>
+                <div className="hidden sm:block">
                   <h1 className="text-xl font-bold text-slate-900">AutoSales AI</h1>
                   <p className="text-sm text-slate-600">Intelligent Sales Management</p>
                 </div>
+                <div className="sm:hidden">
+                  <h1 className="text-lg font-bold text-slate-900">AutoSales AI</h1>
+                </div>
               </div>
               
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <LoginDialog />
               </div>
             </div>
@@ -57,44 +60,44 @@ const Index = () => {
         </header>
 
         {/* Welcome Content */}
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
           <div className="text-center">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-4">
               Welcome to AutoSales AI
             </h2>
-            <p className="text-xl text-slate-600 mb-8">
+            <p className="text-lg sm:text-xl text-slate-600 mb-8">
               Your intelligent automotive sales management platform
             </p>
-            <div className="grid md:grid-cols-3 gap-8 mt-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mt-8 sm:mt-12">
               <Card>
-                <CardHeader>
-                  <BarChart3 className="h-8 w-8 text-blue-600 mb-2" />
-                  <CardTitle>Sales Dashboard</CardTitle>
+                <CardHeader className="text-center">
+                  <BarChart3 className="h-8 w-8 text-blue-600 mb-2 mx-auto" />
+                  <CardTitle className="text-lg">Sales Dashboard</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-slate-600">Track your sales performance with real-time analytics and insights.</p>
+                  <p className="text-slate-600 text-sm sm:text-base">Track your sales performance with real-time analytics and insights.</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader>
-                  <Users className="h-8 w-8 text-green-600 mb-2" />
-                  <CardTitle>Lead Management</CardTitle>
+                <CardHeader className="text-center">
+                  <Users className="h-8 w-8 text-green-600 mb-2 mx-auto" />
+                  <CardTitle className="text-lg">Lead Management</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-slate-600">Manage your customer leads efficiently with our smart CRM system.</p>
+                  <p className="text-slate-600 text-sm sm:text-base">Manage your customer leads efficiently with our smart CRM system.</p>
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader>
-                  <Car className="h-8 w-8 text-purple-600 mb-2" />
-                  <CardTitle>Inventory Control</CardTitle>
+                <CardHeader className="text-center">
+                  <Car className="h-8 w-8 text-purple-600 mb-2 mx-auto" />
+                  <CardTitle className="text-lg">Inventory Control</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-slate-600">Keep track of your vehicle inventory with automated alerts and management.</p>
+                  <p className="text-slate-600 text-sm sm:text-base">Keep track of your vehicle inventory with automated alerts and management.</p>
                 </CardContent>
               </Card>
             </div>
-            <div className="mt-12">
+            <div className="mt-8 sm:mt-12">
               <LoginDialog />
               <p className="text-sm text-slate-500 mt-4">
                 Demo credentials: demo@autosales.com / password
@@ -116,48 +119,62 @@ const Index = () => {
               <div className="bg-blue-600 p-2 rounded-lg">
                 <Car className="h-6 w-6 text-white" />
               </div>
-              <div>
+              <div className="hidden sm:block">
                 <h1 className="text-xl font-bold text-slate-900">AutoSales AI</h1>
                 <p className="text-sm text-slate-600">Intelligent Sales Management</p>
               </div>
+              <div className="sm:hidden">
+                <h1 className="text-lg font-bold text-slate-900">AutoSales AI</h1>
+              </div>
             </div>
             
-            {/* Global Search Bar */}
-            <div className="flex-1 max-w-md mx-8">
+            {/* Global Search Bar - Hidden on mobile, shown on tablet+ */}
+            <div className="hidden md:flex flex-1 max-w-md mx-8">
               <GlobalSearch />
             </div>
 
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Badge variant="secondary" className="hidden sm:inline-flex bg-green-100 text-green-800 text-xs">
                 Active Account
               </Badge>
               <UserMenu />
             </div>
           </div>
+          
+          {/* Mobile Search Bar */}
+          <div className="md:hidden pb-4">
+            <GlobalSearch />
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
-            <TabsTrigger value="dashboard" className="flex items-center space-x-2">
-              <BarChart3 className="h-4 w-4" />
-              <span>Dashboard</span>
-            </TabsTrigger>
-            <TabsTrigger value="leads" className="flex items-center space-x-2">
-              <Users className="h-4 w-4" />
-              <span>Leads</span>
-            </TabsTrigger>
-            <TabsTrigger value="inventory" className="flex items-center space-x-2">
-              <Car className="h-4 w-4" />
-              <span>Inventory</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai-assistant" className="flex items-center space-x-2">
-              <MessageCircle className="h-4 w-4" />
-              <span>AI Assistant</span>
-            </TabsTrigger>
-          </TabsList>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          {/* Mobile-optimized tabs */}
+          <div className="overflow-x-auto">
+            <TabsList className="grid grid-cols-4 w-full min-w-max sm:w-auto">
+              <TabsTrigger value="dashboard" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Dashboard</span>
+                <span className="xs:hidden">Stats</span>
+              </TabsTrigger>
+              <TabsTrigger value="leads" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span>Leads</span>
+              </TabsTrigger>
+              <TabsTrigger value="inventory" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                <Car className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Inventory</span>
+                <span className="xs:hidden">Cars</span>
+              </TabsTrigger>
+              <TabsTrigger value="ai-assistant" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">AI Assistant</span>
+                <span className="xs:hidden">AI</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="dashboard">
             <DashboardMetrics />
