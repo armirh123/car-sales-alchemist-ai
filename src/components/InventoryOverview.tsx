@@ -3,8 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Car, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import ManageStockDialog from "./ManageStockDialog";
 import CarListingPage from "./CarListingPage";
+import CategoryActions from "./CategoryActions";
+import AddCategoryDialog from "./AddCategoryDialog";
 
 interface Car {
   id: string;
@@ -20,6 +23,7 @@ interface Car {
 }
 
 const InventoryOverview = () => {
+  const { toast } = useToast();
   const [cars, setCars] = useState<Car[]>([
     // Sample cars for demonstration
     {
@@ -97,6 +101,7 @@ const InventoryOverview = () => {
   ]);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[]>(["Sedans", "SUVs", "Electric", "Trucks", "Luxury", "Sports"]);
 
   const handleAddCar = (newCar: Car) => {
     setCars(prev => [...prev, newCar]);
@@ -110,15 +115,57 @@ const InventoryOverview = () => {
     setSelectedCategory(null);
   };
 
+  const handleEditCategory = (category: string) => {
+    toast({
+      title: "Edit Category",
+      description: `Edit functionality for ${category} category would be implemented here.`,
+    });
+  };
+
+  const handleDeleteCategory = (category: string) => {
+    const hasVehicles = cars.some(car => car.category === category);
+    
+    if (hasVehicles) {
+      toast({
+        title: "Cannot Delete Category",
+        description: `Cannot delete ${category} category because it contains vehicles. Please move or remove all vehicles first.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCategories(prev => prev.filter(cat => cat !== category));
+    toast({
+      title: "Category Deleted",
+      description: `${category} category has been successfully deleted.`,
+    });
+  };
+
+  const handleAddCategory = (categoryName: string) => {
+    if (categories.includes(categoryName)) {
+      toast({
+        title: "Category Already Exists",
+        description: `A category named "${categoryName}" already exists.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCategories(prev => [...prev, categoryName]);
+    toast({
+      title: "Category Added",
+      description: `${categoryName} category has been successfully added.`,
+    });
+  };
+
   // Calculate inventory statistics
   const getInventoryStats = () => {
-    const categories = ["Sedans", "SUVs", "Electric", "Trucks", "Luxury", "Sports"];
     return categories.map(category => {
       const categoryCars = cars.filter(car => car.category === category);
       const availableCount = categoryCars.filter(car => car.status === "available").length;
       
       // Mock trend data
-      const trendData = {
+      const trendData: Record<string, { trend: string; change: string }> = {
         "Sedans": { trend: "up", change: "+12%" },
         "SUVs": { trend: "down", change: "-23%" },
         "Electric": { trend: "up", change: "+45%" },
@@ -141,8 +188,8 @@ const InventoryOverview = () => {
       return {
         type: category,
         count: availableCount,
-        trend: trendData[category as keyof typeof trendData]?.trend || "up",
-        change: trendData[category as keyof typeof trendData]?.change || "0%",
+        trend: trendData[category]?.trend || "up",
+        change: trendData[category]?.change || "0%",
         popular: getPopularModels(),
         status: getStatus(availableCount)
       };
@@ -181,6 +228,7 @@ const InventoryOverview = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-slate-900">Inventory Overview</h2>
         <div className="flex space-x-2">
+          <AddCategoryDialog onAddCategory={handleAddCategory} />
           <ManageStockDialog onAddCar={handleAddCar} />
           <Button className="bg-blue-600 hover:bg-blue-700">
             <AlertCircle className="h-4 w-4 mr-2" />
@@ -193,9 +241,14 @@ const InventoryOverview = () => {
         {inventoryCategories.map((category, index) => (
           <Card 
             key={index} 
-            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+            className="hover:shadow-lg transition-shadow duration-200 cursor-pointer group relative"
             onClick={() => handleCategoryClick(category.type)}
           >
+            <CategoryActions
+              categoryType={category.type}
+              onEdit={handleEditCategory}
+              onDelete={handleDeleteCategory}
+            />
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{category.type}</CardTitle>
