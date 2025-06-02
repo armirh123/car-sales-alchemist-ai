@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,8 +39,8 @@ const DashboardMetrics = () => {
       trend: "down",
       icon: Car,
       description: "This month",
-      clickable: false,
-      type: ""
+      clickable: true,
+      type: "cars"
     },
     {
       title: "Conversion Rate",
@@ -143,7 +144,7 @@ const DashboardMetrics = () => {
 
     if (metric.clickable) {
       return (
-        <SalesDetailsDialog key={index} type={metric.type as "sales" | "leads"}>
+        <SalesDetailsDialog key={index} type={metric.type as "sales" | "leads" | "cars"}>
           {cardContent}
         </SalesDetailsDialog>
       );
