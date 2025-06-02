@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,15 +10,16 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, Calendar, Building, Car, Users, User } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Building, Car, Users, User, Target, ChevronDown } from "lucide-react";
 
 interface SalesDetailsDialogProps {
   children: React.ReactNode;
-  type: "sales" | "leads" | "cars";
+  type: "sales" | "leads" | "cars" | "conversion";
 }
 
 const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [visibleItems, setVisibleItems] = useState(5);
 
   const salesData = [
     {
@@ -168,6 +168,85 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
     }
   ];
 
+  const conversionData = [
+    {
+      id: 1,
+      employee: "John Smith",
+      leadsGenerated: 45,
+      salesClosed: 12,
+      conversionRate: "26.7%",
+      period: "This month",
+      performance: "excellent"
+    },
+    {
+      id: 2,
+      employee: "Sarah Johnson",
+      leadsGenerated: 38,
+      salesClosed: 9,
+      conversionRate: "23.7%",
+      period: "This month",
+      performance: "good"
+    },
+    {
+      id: 3,
+      employee: "Mike Davis",
+      leadsGenerated: 42,
+      salesClosed: 10,
+      conversionRate: "23.8%",
+      period: "This month",
+      performance: "good"
+    },
+    {
+      id: 4,
+      employee: "Lisa Chen",
+      leadsGenerated: 23,
+      salesClosed: 5,
+      conversionRate: "21.7%",
+      period: "This month",
+      performance: "average"
+    },
+    {
+      id: 5,
+      employee: "Tom Wilson",
+      leadsGenerated: 31,
+      salesClosed: 6,
+      conversionRate: "19.4%",
+      period: "This month",
+      performance: "average"
+    },
+    {
+      id: 6,
+      employee: "Emma Brown",
+      leadsGenerated: 28,
+      salesClosed: 8,
+      conversionRate: "28.6%",
+      period: "This month",
+      performance: "excellent"
+    }
+  ];
+
+  const getCurrentData = () => {
+    switch (type) {
+      case "sales":
+        return salesData;
+      case "leads":
+        return leadsData;
+      case "cars":
+        return carsData;
+      case "conversion":
+        return conversionData;
+      default:
+        return [];
+    }
+  };
+
+  const currentData = getCurrentData();
+  const hasMoreItems = visibleItems < currentData.length;
+
+  const handleShowMore = () => {
+    setVisibleItems(prev => Math.min(prev + 5, currentData.length));
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
@@ -180,6 +259,19 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
         return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-blue-100 text-blue-800';
+    }
+  };
+
+  const getPerformanceColor = (performance: string) => {
+    switch (performance) {
+      case 'excellent':
+        return 'bg-green-100 text-green-800';
+      case 'good':
+        return 'bg-blue-100 text-blue-800';
+      case 'average':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -202,6 +294,12 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
           icon: Car,
           title: "Cars Sold by Employee",
           description: "Detailed breakdown of vehicles sold by team members"
+        };
+      case "conversion":
+        return {
+          icon: Target,
+          title: "Conversion Rates by Employee",
+          description: "Lead to sale conversion performance by team members"
         };
       default:
         return {
@@ -265,7 +363,7 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
               </div>
 
               <div className="space-y-3">
-                {salesData.map((sale) => (
+                {salesData.slice(0, visibleItems).map((sale) => (
                   <Card key={sale.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -296,6 +394,19 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
                     </CardContent>
                   </Card>
                 ))}
+                
+                {hasMoreItems && (
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleShowMore}
+                      className="flex items-center space-x-2"
+                    >
+                      <span>Show More</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -333,7 +444,7 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
               </div>
 
               <div className="space-y-3">
-                {leadsData.map((lead) => (
+                {leadsData.slice(0, visibleItems).map((lead) => (
                   <Card key={lead.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -368,6 +479,19 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
                     </CardContent>
                   </Card>
                 ))}
+                
+                {hasMoreItems && (
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleShowMore}
+                      className="flex items-center space-x-2"
+                    >
+                      <span>Show More</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -405,7 +529,7 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
               </div>
 
               <div className="space-y-3">
-                {carsData.map((car) => (
+                {carsData.slice(0, visibleItems).map((car) => (
                   <Card key={car.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -435,6 +559,98 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
                     </CardContent>
                   </Card>
                 ))}
+                
+                {hasMoreItems && (
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleShowMore}
+                      className="flex items-center space-x-2"
+                    >
+                      <span>Show More</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {type === "conversion" && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm text-slate-600">Overall Conversion Rate</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">24.8%</div>
+                    <div className="text-sm text-green-600">+5.3% this month</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm text-slate-600">Top Performer</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">Emma Brown</div>
+                    <div className="text-sm text-green-600">28.6% conversion rate</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm text-slate-600">Team Average</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">23.9%</div>
+                    <div className="text-sm text-blue-600">Above industry standard</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-3">
+                {conversionData.slice(0, visibleItems).map((conversion) => (
+                  <Card key={conversion.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <User className="h-4 w-4 text-slate-400" />
+                            <span className="font-medium">{conversion.employee}</span>
+                            <Badge className={getPerformanceColor(conversion.performance)}>
+                              {conversion.performance}
+                            </Badge>
+                          </div>
+                          <div className="mt-2 text-sm text-slate-600 flex items-center space-x-4">
+                            <span>📊 {conversion.leadsGenerated} leads generated</span>
+                            <span>✅ {conversion.salesClosed} sales closed</span>
+                            <span className="flex items-center space-x-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>{conversion.period}</span>
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-blue-600">{conversion.conversionRate}</div>
+                          <div className="text-sm text-slate-500">conversion rate</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {hasMoreItems && (
+                  <div className="flex justify-center pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleShowMore}
+                      className="flex items-center space-x-2"
+                    >
+                      <span>Show More</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           )}

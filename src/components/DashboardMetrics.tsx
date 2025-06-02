@@ -49,8 +49,8 @@ const DashboardMetrics = () => {
       trend: "up",
       icon: Target,
       description: "Lead to sale",
-      clickable: false,
-      type: ""
+      clickable: true,
+      type: "conversion"
     }
   ]);
 
@@ -144,7 +144,7 @@ const DashboardMetrics = () => {
 
     if (metric.clickable) {
       return (
-        <SalesDetailsDialog key={index} type={metric.type as "sales" | "leads" | "cars"}>
+        <SalesDetailsDialog key={index} type={metric.type as "sales" | "leads" | "cars" | "conversion"}>
           {cardContent}
         </SalesDetailsDialog>
       );
