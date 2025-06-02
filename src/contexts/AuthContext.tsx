@@ -5,11 +5,13 @@ interface User {
   id: string;
   email: string;
   name: string;
+  role: 'user' | 'admin';
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
+  adminLogin: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -48,10 +50,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userData = {
         id: '1',
         email: email,
-        name: 'Demo User'
+        name: 'Demo User',
+        role: 'user' as const
       };
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
+      setIsLoading(false);
+      return true;
+    }
+    
+    setIsLoading(false);
+    return false;
+  };
+
+  const adminLogin = async (username: string, password: string): Promise<boolean> => {
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Admin credentials
+    if (username === 'admin' && password === 'admin') {
+      const adminData = {
+        id: 'admin-1',
+        email: 'admin@autosales.com',
+        name: 'Admin User',
+        role: 'admin' as const
+      };
+      setUser(adminData);
+      localStorage.setItem('user', JSON.stringify(adminData));
       setIsLoading(false);
       return true;
     }
@@ -66,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, adminLogin, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import AIAssistant from "@/components/AIAssistant";
 import InventoryOverview from "@/components/InventoryOverview";
 import GlobalSearch from "@/components/GlobalSearch";
 import { LoginDialog } from "@/components/LoginDialog";
+import { AdminLoginDialog } from "@/components/AdminLoginDialog";
 import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -54,6 +54,7 @@ const Index = () => {
               
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <LoginDialog />
+                <AdminLoginDialog />
               </div>
             </div>
           </div>
@@ -97,12 +98,14 @@ const Index = () => {
                 </CardContent>
               </Card>
             </div>
-            <div className="mt-8 sm:mt-12">
+            <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
               <LoginDialog />
-              <p className="text-sm text-slate-500 mt-4">
-                Demo credentials: demo@autosales.com / password
-              </p>
+              <AdminLoginDialog />
             </div>
+            <p className="text-sm text-slate-500 mt-4">
+              Demo credentials: demo@autosales.com / password<br />
+              Admin credentials: admin / admin
+            </p>
           </div>
         </main>
       </div>
