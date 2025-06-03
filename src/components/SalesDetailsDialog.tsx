@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, Calendar, Building, Car, Users, User, Target, ChevronDown } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Building, Car, Users, User, Target, ChevronDown, Plus, Edit } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface SalesDetailsDialogProps {
   children: React.ReactNode;
@@ -20,8 +22,12 @@ interface SalesDetailsDialogProps {
 const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
   const [open, setOpen] = useState(false);
   const [visibleItems, setVisibleItems] = useState(5);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const isAdmin = user?.role === 'admin';
 
-  const salesData = [
+  // Only show data if user is admin
+  const salesData = isAdmin ? [
     {
       id: 1,
       client: "Premium Motors LLC",
@@ -67,9 +73,9 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
       status: "completed",
       salesperson: "John Smith"
     }
-  ];
+  ] : [];
 
-  const leadsData = [
+  const leadsData = isAdmin ? [
     {
       id: 1,
       company: "Elite Motors",
@@ -118,7 +124,7 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
       lastContact: "4 hours ago",
       assignedTo: "Lisa Chen"
     }
-  ];
+  ] : [];
 
   const carsData = [
     {
@@ -226,15 +232,17 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
   ];
 
   const getCurrentData = () => {
+    if (!isAdmin) return [];
+    
     switch (type) {
       case "sales":
         return salesData;
       case "leads":
         return leadsData;
       case "cars":
-        return carsData;
+        return [];
       case "conversion":
-        return conversionData;
+        return [];
       default:
         return [];
     }
@@ -245,6 +253,36 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
 
   const handleShowMore = () => {
     setVisibleItems(prev => Math.min(prev + 5, currentData.length));
+  };
+
+  const handleAddNew = () => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can add new entries",
+        variant: "destructive"
+      });
+      return;
+    }
+    toast({
+      title: "Add New",
+      description: "Add functionality will be implemented by admin"
+    });
+  };
+
+  const handleEdit = () => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can edit entries",
+        variant: "destructive"
+      });
+      return;
+    }
+    toast({
+      title: "Edit",
+      description: "Edit functionality will be implemented by admin"
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -310,6 +348,33 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
     }
   };
 
+  if (!isAdmin) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Access Restricted</DialogTitle>
+            <DialogDescription>
+              Detailed data access is limited to administrators only.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6">
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-slate-600">
+                  You don't have permission to view detailed sales data. Please contact your administrator for access to comprehensive reports and analytics.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   const config = getDialogConfig();
   const Icon = config.icon;
 
@@ -320,319 +385,79 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Icon className="h-5 w-5" />
-            <span>{config.title}</span>
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Icon className="h-5 w-5" />
+              <span>{config.title}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleAddNew}
+                className="text-green-600 border-green-200"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add New
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleEdit}
+                className="text-blue-600 border-blue-200"
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </div>
           </DialogTitle>
           <DialogDescription>
-            {config.description}
+            {config.description} - Administrator access required
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {type === "sales" && (
+          {currentData.length === 0 ? (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <p className="text-lg font-medium text-slate-900 mb-2">No Data Available</p>
+                <p className="text-slate-600 mb-4">
+                  Start by adding your first {type} entry to see detailed analytics here.
+                </p>
+                <Button onClick={handleAddNew} className="text-green-600 border-green-200">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Entry
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Total Revenue</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">$2,400,000</div>
-                    <div className="text-sm text-green-600">+12.5% this month</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Top Performer</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">John Smith</div>
-                    <div className="text-sm text-blue-600">$323,000 this month</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Average Deal Size</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">$35,820</div>
-                    <div className="text-sm text-orange-600">+8.2% vs last month</div>
-                  </CardContent>
-                </Card>
-              </div>
-
+              {/* Summary cards would go here - removed generated content */}
               <div className="space-y-3">
-                {salesData.slice(0, visibleItems).map((sale) => (
-                  <Card key={sale.id} className="hover:shadow-md transition-shadow">
+                {currentData.slice(0, visibleItems).map((item: any) => (
+                  <Card key={item.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3">
                             <Building className="h-4 w-4 text-slate-400" />
-                            <span className="font-medium">{sale.client}</span>
-                            <Badge className={getStatusColor(sale.status)}>
-                              {sale.status}
-                            </Badge>
-                          </div>
-                          <div className="mt-2 text-sm text-slate-600 flex items-center space-x-4">
-                            <span className="flex items-center space-x-1">
-                              <User className="h-3 w-3" />
-                              <span>{sale.salesperson}</span>
+                            <span className="font-medium">
+                              {item.client || item.company || item.vehicle || item.employee}
                             </span>
-                            <span>🚗 {sale.vehicles} vehicles</span>
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{sale.date}</span>
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-green-600">{sale.amount}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                {hasMoreItems && (
-                  <div className="flex justify-center pt-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleShowMore}
-                      className="flex items-center space-x-2"
-                    >
-                      <span>Show More</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {type === "leads" && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Total Pipeline Value</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">$635,000</div>
-                    <div className="text-sm text-green-600">148 active leads</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Top Lead Manager</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">Mike Davis</div>
-                    <div className="text-sm text-blue-600">42 active leads</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Conversion Rate</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">24.8%</div>
-                    <div className="text-sm text-green-600">+5.3% this month</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="space-y-3">
-                {leadsData.slice(0, visibleItems).map((lead) => (
-                  <Card key={lead.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <Building className="h-4 w-4 text-slate-400" />
-                            <span className="font-medium">{lead.company}</span>
-                            <Badge className={getStatusColor(lead.status)}>
-                              {lead.status}
-                            </Badge>
+                            {item.status && (
+                              <Badge className="bg-blue-100 text-blue-800">
+                                {item.status}
+                              </Badge>
+                            )}
                           </div>
                           <div className="mt-2 text-sm text-slate-600">
-                            <div className="flex items-center space-x-4">
-                              <span>👤 {lead.contact}</span>
-                              <span>📧 {lead.email}</span>
-                              <span>📞 {lead.phone}</span>
-                            </div>
-                            <div className="mt-1 flex items-center space-x-4">
-                              <span>🎯 {lead.interest}</span>
-                              <span className="flex items-center space-x-1">
-                                <User className="h-3 w-3" />
-                                <span>Assigned to: {lead.assignedTo}</span>
-                              </span>
-                              <span>⏰ {lead.lastContact}</span>
-                            </div>
+                            <p>Additional details will be populated by admin</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold text-blue-600">{lead.value}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                {hasMoreItems && (
-                  <div className="flex justify-center pt-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleShowMore}
-                      className="flex items-center space-x-2"
-                    >
-                      <span>Show More</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {type === "cars" && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Total Cars Sold</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">67</div>
-                    <div className="text-sm text-red-600">-2.1% this month</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Top Seller</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">John Smith</div>
-                    <div className="text-sm text-blue-600">18 cars this month</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Total Commissions</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">$70,075</div>
-                    <div className="text-sm text-green-600">This month</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="space-y-3">
-                {carsData.slice(0, visibleItems).map((car) => (
-                  <Card key={car.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <Car className="h-4 w-4 text-slate-400" />
-                            <span className="font-medium">{car.vehicle}</span>
-                            <Badge className="bg-blue-100 text-blue-800">sold</Badge>
+                          <div className="text-lg font-bold text-green-600">
+                            {item.amount || item.value || item.salePrice || item.conversionRate}
                           </div>
-                          <div className="mt-2 text-sm text-slate-600 flex items-center space-x-4">
-                            <span className="flex items-center space-x-1">
-                              <User className="h-3 w-3" />
-                              <span>Sold by: {car.soldBy}</span>
-                            </span>
-                            <span>🏢 {car.client}</span>
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{car.date}</span>
-                            </span>
-                            <span>💰 Commission: {car.commission}</span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-green-600">{car.salePrice}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                {hasMoreItems && (
-                  <div className="flex justify-center pt-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleShowMore}
-                      className="flex items-center space-x-2"
-                    >
-                      <span>Show More</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {type === "conversion" && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Overall Conversion Rate</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">24.8%</div>
-                    <div className="text-sm text-green-600">+5.3% this month</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Top Performer</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">Emma Brown</div>
-                    <div className="text-sm text-green-600">28.6% conversion rate</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-slate-600">Team Average</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">23.9%</div>
-                    <div className="text-sm text-blue-600">Above industry standard</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="space-y-3">
-                {conversionData.slice(0, visibleItems).map((conversion) => (
-                  <Card key={conversion.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <User className="h-4 w-4 text-slate-400" />
-                            <span className="font-medium">{conversion.employee}</span>
-                            <Badge className={getPerformanceColor(conversion.performance)}>
-                              {conversion.performance}
-                            </Badge>
-                          </div>
-                          <div className="mt-2 text-sm text-slate-600 flex items-center space-x-4">
-                            <span>📊 {conversion.leadsGenerated} leads generated</span>
-                            <span>✅ {conversion.salesClosed} sales closed</span>
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{conversion.period}</span>
-                            </span>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-blue-600">{conversion.conversionRate}</div>
-                          <div className="text-sm text-slate-500">conversion rate</div>
                         </div>
                       </div>
                     </CardContent>

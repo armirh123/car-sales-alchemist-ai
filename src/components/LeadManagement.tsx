@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Phone, Mail, Calendar, Filter, Edit, Trash2 } from "lucide-react";
+import { Search, Phone, Mail, Calendar, Filter, Edit, Trash2, Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import AddLeadDialog from "./AddLeadDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Lead {
   id: number;
@@ -31,63 +32,90 @@ const LeadManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
+  // Sample data - in real app this would come from your database
   const [leads, setLeads] = useState<Lead[]>([
     {
       id: 1,
       name: "Johnson Motors",
       contact: "Sarah Johnson",
-      email: "sarah@johnsonmotors.com",
-      phone: "(555) 123-4567",
+      email: isAdmin ? "sarah@johnsonmotors.com" : "***@***.com",
+      phone: isAdmin ? "(555) 123-4567" : "(***) ***-****",
       interest: "Luxury Sedans",
       status: "hot",
       lastContact: "2 days ago",
-      value: "$125,000"
+      value: isAdmin ? "$125,000" : "$***,***"
     },
     {
       id: 2,
       name: "Metro Auto Group",
       contact: "Mike Chen",
-      email: "mike@metroauto.com",
-      phone: "(555) 234-5678",
+      email: isAdmin ? "mike@metroauto.com" : "***@***.com",
+      phone: isAdmin ? "(555) 234-5678" : "(***) ***-****",
       interest: "Electric Vehicles",
       status: "warm",
       lastContact: "1 week ago",
-      value: "$85,000"
-    },
-    {
-      id: 3,
-      name: "City Dealership",
-      contact: "Lisa Rodriguez",
-      email: "lisa@citydealer.com",
-      phone: "(555) 345-6789",
-      interest: "Family SUVs",
-      status: "cold",
-      lastContact: "2 weeks ago",
-      value: "$95,000"
-    },
-    {
-      id: 4,
-      name: "Premium Motors",
-      contact: "David Kim",
-      email: "david@premiummotors.com",
-      phone: "(555) 456-7890",
-      interest: "Sports Cars",
-      status: "hot",
-      lastContact: "1 day ago",
-      value: "$200,000"
+      value: isAdmin ? "$85,000" : "$**,***"
     }
   ]);
 
   const handleAddLead = (newLead: Lead) => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can add leads",
+        variant: "destructive"
+      });
+      return;
+    }
     setLeads(prev => [...prev, newLead]);
   };
 
   const handleDeleteLead = (id: number) => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can delete leads",
+        variant: "destructive"
+      });
+      return;
+    }
     setLeads(prev => prev.filter(lead => lead.id !== id));
     toast({
       title: "Lead deleted",
       description: "The lead has been removed from your pipeline"
+    });
+  };
+
+  const handleEditLead = () => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can edit leads",
+        variant: "destructive"
+      });
+      return;
+    }
+    toast({
+      title: "Edit Feature",
+      description: "Edit functionality will be implemented by admin"
+    });
+  };
+
+  const handleContactAction = (action: string) => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can perform contact actions",
+        variant: "destructive"
+      });
+      return;
+    }
+    toast({
+      title: `${action} Action`,
+      description: `${action} functionality will be implemented by admin`
     });
   };
 
@@ -104,8 +132,7 @@ const LeadManagement = () => {
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.interest.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase());
+      lead.interest.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || lead.status === statusFilter;
     
@@ -115,8 +142,10 @@ const LeadManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-900">Lead Management</h2>
-        <AddLeadDialog onAddLead={handleAddLead} />
+        <h2 className="text-2xl font-bold text-slate-900">
+          {isAdmin ? "Lead Management" : "Leads Overview"}
+        </h2>
+        {isAdmin && <AddLeadDialog onAddLead={handleAddLead} />}
       </div>
 
       <div className="flex items-center space-x-4">
@@ -187,31 +216,54 @@ const LeadManagement = () => {
                 </div>
 
                 <div className="flex flex-col space-y-2 ml-4">
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleContactAction('Call')}
+                    disabled={!isAdmin}
+                  >
                     <Phone className="h-4 w-4 mr-1" />
                     Call
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Mail className="h-4 w-4 mr-1" />
-                    Email
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    Schedule
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => handleDeleteLead(lead.id)}
-                    className="text-red-600 hover:text-red-700"
+                    onClick={() => handleContactAction('Email')}
+                    disabled={!isAdmin}
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
+                    <Mail className="h-4 w-4 mr-1" />
+                    Email
                   </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleContactAction('Schedule')}
+                    disabled={!isAdmin}
+                  >
+                    <Calendar className="h-4 w-4 mr-1" />
+                    Schedule
+                  </Button>
+                  {isAdmin && (
+                    <>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={handleEditLead}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleDeleteLead(lead.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -225,10 +277,26 @@ const LeadManagement = () => {
           <p className="text-slate-500">
             {searchTerm || statusFilter !== "all" 
               ? "No leads match your current filters" 
-              : "Start by adding your first lead"
+              : isAdmin 
+                ? "Start by adding your first lead"
+                : "No leads available to display"
             }
           </p>
         </div>
+      )}
+
+      {!isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Limited Access</CardTitle>
+            <CardDescription>You have view-only access to leads</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-slate-600">
+              Contact your administrator to add, edit, or manage leads. Your current access level allows viewing basic lead information only.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

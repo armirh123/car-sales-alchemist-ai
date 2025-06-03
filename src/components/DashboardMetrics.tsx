@@ -3,64 +3,76 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, DollarSign, Users, Car, Target, RefreshCw } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Users, Car, Target, RefreshCw, Plus, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import SalesDetailsDialog from "./SalesDetailsDialog";
 
 const DashboardMetrics = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
   const [metrics, setMetrics] = useState([
     {
       title: "Total Sales",
-      value: "$2.4M",
-      change: "+12.5%",
+      value: isAdmin ? "$2.4M" : "$***",
+      change: isAdmin ? "+12.5%" : "***",
       trend: "up",
       icon: DollarSign,
       description: "This month",
-      clickable: true,
+      clickable: isAdmin,
       type: "sales"
     },
     {
       title: "Active Leads",
-      value: "148",
-      change: "+8.2%",
+      value: isAdmin ? "148" : "***",
+      change: isAdmin ? "+8.2%" : "***",
       trend: "up",
       icon: Users,
       description: "Qualified prospects",
-      clickable: true,
+      clickable: isAdmin,
       type: "leads"
     },
     {
       title: "Cars Sold",
-      value: "67",
-      change: "-2.1%",
+      value: isAdmin ? "67" : "***",
+      change: isAdmin ? "-2.1%" : "***",
       trend: "down",
       icon: Car,
       description: "This month",
-      clickable: true,
+      clickable: isAdmin,
       type: "cars"
     },
     {
       title: "Conversion Rate",
-      value: "24.8%",
-      change: "+5.3%",
+      value: isAdmin ? "24.8%" : "***",
+      change: isAdmin ? "+5.3%" : "***",
       trend: "up",
       icon: Target,
       description: "Lead to sale",
-      clickable: true,
+      clickable: isAdmin,
       type: "conversion"
     }
   ]);
 
   const handleRefreshData = async () => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only administrators can refresh data",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsRefreshing(true);
     
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Generate new mock data
+    // Generate new mock data for admin
     const newMetrics = [
       {
         title: "Total Sales",
@@ -89,8 +101,8 @@ const DashboardMetrics = () => {
         trend: Math.random() > 0.5 ? "up" : "down",
         icon: Car,
         description: "This month",
-        clickable: false,
-        type: ""
+        clickable: true,
+        type: "cars"
       },
       {
         title: "Conversion Rate",
@@ -99,8 +111,8 @@ const DashboardMetrics = () => {
         trend: Math.random() > 0.5 ? "up" : "down",
         icon: Target,
         description: "Lead to sale",
-        clickable: false,
-        type: ""
+        clickable: true,
+        type: "conversion"
       }
     ];
 
@@ -142,7 +154,7 @@ const DashboardMetrics = () => {
       </Card>
     );
 
-    if (metric.clickable) {
+    if (metric.clickable && isAdmin) {
       return (
         <SalesDetailsDialog key={index} type={metric.type as "sales" | "leads" | "cars" | "conversion"}>
           {cardContent}
@@ -156,8 +168,30 @@ const DashboardMetrics = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-slate-900">Sales Dashboard</h2>
+        <h2 className="text-2xl font-bold text-slate-900">
+          {isAdmin ? "Admin Dashboard" : "Sales Overview"}
+        </h2>
         <div className="flex items-center space-x-2">
+          {isAdmin && (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-green-600 border-green-200"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Data
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-purple-600 border-purple-200"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Manage
+              </Button>
+            </>
+          )}
           <Button 
             variant="outline" 
             size="sm"
@@ -166,7 +200,7 @@ const DashboardMetrics = () => {
             className="text-blue-600 border-blue-200"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Live Data'}
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>
       </div>
@@ -175,71 +209,89 @@ const DashboardMetrics = () => {
         {metrics.map((metric, index) => renderMetricCard(metric, index))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Insights</CardTitle>
-            <CardDescription>Latest recommendations from your AI agent</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="border-l-4 border-blue-500 pl-4">
-              <p className="font-medium text-slate-900">High-Value Lead Alert</p>
-              <p className="text-sm text-slate-600">
-                Johnson Motors is showing strong interest in luxury sedans. Recommend scheduling a call this week.
-              </p>
-            </div>
-            <div className="border-l-4 border-orange-500 pl-4">
-              <p className="font-medium text-slate-900">Inventory Optimization</p>
-              <p className="text-sm text-slate-600">
-                SUV demand is 23% higher than current stock. Consider increasing inventory for Q4.
-              </p>
-            </div>
-            <div className="border-l-4 border-green-500 pl-4">
-              <p className="font-medium text-slate-900">Success Pattern</p>
-              <p className="text-sm text-slate-600">
-                Dealerships contacted on Tuesdays show 18% higher conversion rates.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      {isAdmin ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Admin Management</CardTitle>
+              <CardDescription>Administrative controls and data management</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="border-l-4 border-blue-500 pl-4">
+                <p className="font-medium text-slate-900">Data Management</p>
+                <p className="text-sm text-slate-600">
+                  Add, edit, and manage all sales data, leads, and inventory from this admin panel.
+                </p>
+              </div>
+              <div className="border-l-4 border-green-500 pl-4">
+                <p className="font-medium text-slate-900">User Management</p>
+                <p className="text-sm text-slate-600">
+                  Manage employee access levels and monitor user activity across the platform.
+                </p>
+              </div>
+              <div className="border-l-4 border-purple-500 pl-4">
+                <p className="font-medium text-slate-900">System Configuration</p>
+                <p className="text-sm text-slate-600">
+                  Configure system settings, notifications, and customize the platform for your dealership.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest sales activities and updates</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Sale completed: Premium Motors - $45,000</p>
-                <p className="text-xs text-slate-500">2 hours ago</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Admin Actions</CardTitle>
+              <CardDescription>Latest administrative activities</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Data updated by Admin</p>
+                  <p className="text-xs text-slate-500">2 hours ago</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">New lead: City Auto Group</p>
-                <p className="text-xs text-slate-500">4 hours ago</p>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">New user account created</p>
+                  <p className="text-xs text-slate-500">4 hours ago</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Follow-up scheduled: Metro Dealership</p>
-                <p className="text-xs text-slate-500">6 hours ago</p>
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">System configuration changed</p>
+                  <p className="text-xs text-slate-500">6 hours ago</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">AI recommendation implemented</p>
-                <p className="text-xs text-slate-500">1 day ago</p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Limited Access</CardTitle>
+              <CardDescription>Contact your administrator for detailed information</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="border-l-4 border-blue-500 pl-4">
+                <p className="font-medium text-slate-900">View Only Access</p>
+                <p className="text-sm text-slate-600">
+                  You have read-only access to basic sales overview. For detailed data and editing capabilities, contact your administrator.
+                </p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              <div className="border-l-4 border-orange-500 pl-4">
+                <p className="font-medium text-slate-900">Need More Access?</p>
+                <p className="text-sm text-slate-600">
+                  If you need to view detailed reports or make changes, please reach out to your system administrator.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
