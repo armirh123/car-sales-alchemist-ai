@@ -14,222 +14,73 @@ import { DollarSign, TrendingUp, Calendar, Building, Car, Users, User, Target, C
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+interface Employee {
+  id: number;
+  name: string;
+  leadsGenerated: number;
+  salesClosed: number;
+}
+
 interface SalesDetailsDialogProps {
   children: React.ReactNode;
   type: "sales" | "leads" | "cars" | "conversion";
+  employeeData?: Employee[];
 }
 
-const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
+const SalesDetailsDialog = ({ children, type, employeeData = [] }: SalesDetailsDialogProps) => {
   const [open, setOpen] = useState(false);
   const [visibleItems, setVisibleItems] = useState(5);
   const { user } = useAuth();
   const { toast } = useToast();
   const isAdmin = user?.role === 'admin';
 
-  // Only show data if user is admin
-  const salesData = isAdmin ? [
-    {
-      id: 1,
-      client: "Premium Motors LLC",
-      amount: "$125,000",
-      date: "2024-01-15",
-      vehicles: 3,
-      status: "completed",
-      salesperson: "John Smith"
-    },
-    {
-      id: 2,
-      client: "City Auto Group",
-      amount: "$89,500",
-      date: "2024-01-14",
-      vehicles: 2,
-      status: "completed",
-      salesperson: "Sarah Johnson"
-    },
-    {
-      id: 3,
-      client: "Metro Dealership",
-      amount: "$156,800",
-      date: "2024-01-13",
-      vehicles: 4,
-      status: "completed",
-      salesperson: "Mike Davis"
-    },
-    {
-      id: 4,
-      client: "Highway Motors",
-      amount: "$67,200",
-      date: "2024-01-12",
-      vehicles: 1,
-      status: "pending",
-      salesperson: "Lisa Chen"
-    },
-    {
-      id: 5,
-      client: "Downtown Auto",
-      amount: "$198,000",
-      date: "2024-01-11",
-      vehicles: 5,
-      status: "completed",
-      salesperson: "John Smith"
-    }
-  ] : [];
+  // Calculate conversion data from employee data
+  const conversionData = employeeData.map(emp => ({
+    id: emp.id,
+    employee: emp.name,
+    leadsGenerated: emp.leadsGenerated,
+    salesClosed: emp.salesClosed,
+    conversionRate: emp.leadsGenerated > 0 ? `${(emp.salesClosed / emp.leadsGenerated * 100).toFixed(1)}%` : "0.0%",
+    period: "This month",
+    performance: emp.leadsGenerated > 0 ? 
+      (emp.salesClosed / emp.leadsGenerated) > 0.25 ? "excellent" :
+      (emp.salesClosed / emp.leadsGenerated) > 0.20 ? "good" : "average"
+      : "average"
+  }));
 
-  const leadsData = isAdmin ? [
-    {
-      id: 1,
-      company: "Elite Motors",
-      contact: "Robert Wilson",
-      email: "rwilson@elitemotors.com",
-      phone: "(555) 123-4567",
-      interest: "Luxury Sedans",
-      value: "$180,000",
-      status: "hot",
-      lastContact: "2 hours ago",
-      assignedTo: "John Smith"
-    },
-    {
-      id: 2,
-      company: "Valley Auto Sales",
-      contact: "Jennifer Brown",
-      email: "jbrown@valleyauto.com",
-      phone: "(555) 234-5678",
-      interest: "SUVs",
-      value: "$95,000",
-      status: "warm",
-      lastContact: "1 day ago",
-      assignedTo: "Sarah Johnson"
-    },
-    {
-      id: 3,
-      company: "Sunset Motors",
-      contact: "David Martinez",
-      email: "dmartinez@sunsetmotors.com",
-      phone: "(555) 345-6789",
-      interest: "Electric Vehicles",
-      value: "$220,000",
-      status: "hot",
-      lastContact: "3 hours ago",
-      assignedTo: "Mike Davis"
-    },
-    {
-      id: 4,
-      company: "Riverside Dealership",
-      contact: "Amanda Taylor",
-      email: "ataylor@riverside.com",
-      phone: "(555) 456-7890",
-      interest: "Trucks",
-      value: "$140,000",
-      status: "warm",
-      lastContact: "4 hours ago",
-      assignedTo: "Lisa Chen"
-    }
-  ] : [];
+  // Mock data for other types - in real app this would come from database
+  const salesData = isAdmin ? employeeData.map(emp => ({
+    id: emp.id,
+    client: `Client ${emp.id}`,
+    amount: `$${(emp.salesClosed * 45000).toLocaleString()}`,
+    date: "2024-01-15",
+    vehicles: emp.salesClosed,
+    status: "completed",
+    salesperson: emp.name
+  })) : [];
 
-  const carsData = [
-    {
-      id: 1,
-      vehicle: "2024 BMW X5",
-      client: "Premium Motors LLC",
-      salePrice: "$65,000",
-      date: "2024-01-15",
-      soldBy: "John Smith",
-      commission: "$3,250"
-    },
-    {
-      id: 2,
-      vehicle: "2023 Audi A6",
-      client: "City Auto Group",
-      salePrice: "$48,500",
-      date: "2024-01-14",
-      soldBy: "Sarah Johnson",
-      commission: "$2,425"
-    },
-    {
-      id: 3,
-      vehicle: "2024 Mercedes GLC",
-      client: "Metro Dealership",
-      salePrice: "$58,000",
-      date: "2024-01-13",
-      soldBy: "Mike Davis",
-      commission: "$2,900"
-    },
-    {
-      id: 4,
-      vehicle: "2023 Tesla Model Y",
-      client: "Elite Motors",
-      salePrice: "$52,000",
-      date: "2024-01-12",
-      soldBy: "Lisa Chen",
-      commission: "$2,600"
-    },
-    {
-      id: 5,
-      vehicle: "2024 Porsche Cayenne",
-      client: "Downtown Auto",
-      salePrice: "$78,000",
-      date: "2024-01-11",
-      soldBy: "John Smith",
-      commission: "$3,900"
-    }
-  ];
+  const leadsData = isAdmin ? employeeData.map(emp => ({
+    id: emp.id,
+    company: `Company ${emp.id}`,
+    contact: `Contact ${emp.id}`,
+    email: `contact${emp.id}@company.com`,
+    phone: `(555) 123-456${emp.id}`,
+    interest: "Various Vehicles",
+    value: `$${(emp.leadsGenerated * 15000).toLocaleString()}`,
+    status: emp.leadsGenerated > 30 ? "hot" : "warm",
+    lastContact: "2 hours ago",
+    assignedTo: emp.name
+  })) : [];
 
-  const conversionData = [
-    {
-      id: 1,
-      employee: "John Smith",
-      leadsGenerated: 45,
-      salesClosed: 12,
-      conversionRate: "26.7%",
-      period: "This month",
-      performance: "excellent"
-    },
-    {
-      id: 2,
-      employee: "Sarah Johnson",
-      leadsGenerated: 38,
-      salesClosed: 9,
-      conversionRate: "23.7%",
-      period: "This month",
-      performance: "good"
-    },
-    {
-      id: 3,
-      employee: "Mike Davis",
-      leadsGenerated: 42,
-      salesClosed: 10,
-      conversionRate: "23.8%",
-      period: "This month",
-      performance: "good"
-    },
-    {
-      id: 4,
-      employee: "Lisa Chen",
-      leadsGenerated: 23,
-      salesClosed: 5,
-      conversionRate: "21.7%",
-      period: "This month",
-      performance: "average"
-    },
-    {
-      id: 5,
-      employee: "Tom Wilson",
-      leadsGenerated: 31,
-      salesClosed: 6,
-      conversionRate: "19.4%",
-      period: "This month",
-      performance: "average"
-    },
-    {
-      id: 6,
-      employee: "Emma Brown",
-      leadsGenerated: 28,
-      salesClosed: 8,
-      conversionRate: "28.6%",
-      period: "This month",
-      performance: "excellent"
-    }
-  ];
+  const carsData = employeeData.map(emp => ({
+    id: emp.id,
+    vehicle: `Vehicle ${emp.id}`,
+    client: `Client ${emp.id}`,
+    salePrice: `$${(45000 + (emp.id * 5000)).toLocaleString()}`,
+    date: "2024-01-15",
+    soldBy: emp.name,
+    commission: `$${((45000 + (emp.id * 5000)) * 0.05).toLocaleString()}`
+  }));
 
   const getCurrentData = () => {
     if (!isAdmin) return [];
@@ -240,9 +91,9 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
       case "leads":
         return leadsData;
       case "cars":
-        return [];
+        return carsData;
       case "conversion":
-        return [];
+        return conversionData;
       default:
         return [];
     }
@@ -337,7 +188,7 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
         return {
           icon: Target,
           title: "Conversion Rates by Employee",
-          description: "Lead to sale conversion performance by team members"
+          description: "Real-time conversion performance calculated from leads and sales data"
         };
       default:
         return {
@@ -432,7 +283,6 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
             </Card>
           ) : (
             <>
-              {/* Summary cards would go here - removed generated content */}
               <div className="space-y-3">
                 {currentData.slice(0, visibleItems).map((item: any) => (
                   <Card key={item.id} className="hover:shadow-md transition-shadow">
@@ -440,24 +290,56 @@ const SalesDetailsDialog = ({ children, type }: SalesDetailsDialogProps) => {
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3">
-                            <Building className="h-4 w-4 text-slate-400" />
+                            <User className="h-4 w-4 text-slate-400" />
                             <span className="font-medium">
-                              {item.client || item.company || item.vehicle || item.employee}
+                              {item.employee || item.salesperson || item.assignedTo || item.soldBy}
                             </span>
                             {item.status && (
-                              <Badge className="bg-blue-100 text-blue-800">
+                              <Badge className={getStatusColor(item.status)}>
                                 {item.status}
+                              </Badge>
+                            )}
+                            {item.performance && (
+                              <Badge className={getPerformanceColor(item.performance)}>
+                                {item.performance}
                               </Badge>
                             )}
                           </div>
                           <div className="mt-2 text-sm text-slate-600">
-                            <p>Additional details will be populated by admin</p>
+                            {type === "conversion" ? (
+                              <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                  <span className="font-medium">Leads: </span>
+                                  <span>{item.leadsGenerated}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Sales: </span>
+                                  <span>{item.salesClosed}</span>
+                                </div>
+                                <div>
+                                  <span className="font-medium">Period: </span>
+                                  <span>{item.period}</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <p>
+                                {item.client && `Client: ${item.client} • `}
+                                {item.company && `Company: ${item.company} • `}
+                                {item.vehicle && `Vehicle: ${item.vehicle} • `}
+                                {item.date && `Date: ${item.date}`}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-bold text-green-600">
                             {item.amount || item.value || item.salePrice || item.conversionRate}
                           </div>
+                          {item.commission && (
+                            <div className="text-sm text-slate-500">
+                              Commission: {item.commission}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>

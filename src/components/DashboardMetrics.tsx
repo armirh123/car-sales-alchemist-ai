@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,12 +13,56 @@ const DashboardMetrics = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
+  // Sample employee data - in real app this would come from database
+  const [employeeData] = useState([
+    { id: 1, name: "John Smith", leadsGenerated: 45, salesClosed: 12 },
+    { id: 2, name: "Sarah Johnson", leadsGenerated: 38, salesClosed: 9 },
+    { id: 3, name: "Mike Davis", leadsGenerated: 42, salesClosed: 10 },
+    { id: 4, name: "Lisa Chen", leadsGenerated: 23, salesClosed: 5 },
+    { id: 5, name: "Tom Wilson", leadsGenerated: 31, salesClosed: 6 },
+    { id: 6, name: "Emma Brown", leadsGenerated: 28, salesClosed: 8 }
+  ]);
+
+  // Calculate metrics based on employee data
+  const calculatedMetrics = useMemo(() => {
+    const totalLeads = employeeData.reduce((sum, emp) => sum + emp.leadsGenerated, 0);
+    const totalSales = employeeData.reduce((sum, emp) => sum + emp.salesClosed, 0);
+    const overallConversionRate = totalLeads > 0 ? (totalSales / totalLeads * 100).toFixed(1) : "0.0";
+    
+    // Calculate average sales value (mock calculation)
+    const avgSaleValue = 45000; // Average car sale value
+    const totalSalesValue = totalSales * avgSaleValue;
+    
+    return {
+      totalSales: {
+        value: isAdmin ? `$${(totalSalesValue / 1000000).toFixed(1)}M` : "$***",
+        change: isAdmin ? "+12.5%" : "***",
+        trend: "up" as const
+      },
+      activeLeads: {
+        value: isAdmin ? totalLeads.toString() : "***",
+        change: isAdmin ? "+8.2%" : "***", 
+        trend: "up" as const
+      },
+      carsSold: {
+        value: isAdmin ? totalSales.toString() : "***",
+        change: isAdmin ? "-2.1%" : "***",
+        trend: "down" as const
+      },
+      conversionRate: {
+        value: isAdmin ? `${overallConversionRate}%` : "***",
+        change: isAdmin ? "+5.3%" : "***",
+        trend: "up" as const
+      }
+    };
+  }, [employeeData, isAdmin]);
+
   const [metrics, setMetrics] = useState([
     {
       title: "Total Sales",
-      value: isAdmin ? "$2.4M" : "$***",
-      change: isAdmin ? "+12.5%" : "***",
-      trend: "up",
+      value: calculatedMetrics.totalSales.value,
+      change: calculatedMetrics.totalSales.change,
+      trend: calculatedMetrics.totalSales.trend,
       icon: DollarSign,
       description: "This month",
       clickable: isAdmin,
@@ -27,9 +70,9 @@ const DashboardMetrics = () => {
     },
     {
       title: "Active Leads",
-      value: isAdmin ? "148" : "***",
-      change: isAdmin ? "+8.2%" : "***",
-      trend: "up",
+      value: calculatedMetrics.activeLeads.value,
+      change: calculatedMetrics.activeLeads.change,
+      trend: calculatedMetrics.activeLeads.trend,
       icon: Users,
       description: "Qualified prospects",
       clickable: isAdmin,
@@ -37,9 +80,9 @@ const DashboardMetrics = () => {
     },
     {
       title: "Cars Sold",
-      value: isAdmin ? "67" : "***",
-      change: isAdmin ? "-2.1%" : "***",
-      trend: "down",
+      value: calculatedMetrics.carsSold.value,
+      change: calculatedMetrics.carsSold.change,
+      trend: calculatedMetrics.carsSold.trend,
       icon: Car,
       description: "This month",
       clickable: isAdmin,
@@ -47,15 +90,25 @@ const DashboardMetrics = () => {
     },
     {
       title: "Conversion Rate",
-      value: isAdmin ? "24.8%" : "***",
-      change: isAdmin ? "+5.3%" : "***",
-      trend: "up",
+      value: calculatedMetrics.conversionRate.value,
+      change: calculatedMetrics.conversionRate.change,
+      trend: calculatedMetrics.conversionRate.trend,
       icon: Target,
       description: "Lead to sale",
       clickable: isAdmin,
       type: "conversion"
     }
   ]);
+
+  // Update metrics when calculated values change
+  React.useEffect(() => {
+    setMetrics(prev => prev.map(metric => ({
+      ...metric,
+      value: calculatedMetrics[metric.type as keyof typeof calculatedMetrics]?.value || metric.value,
+      change: calculatedMetrics[metric.type as keyof typeof calculatedMetrics]?.change || metric.change,
+      trend: calculatedMetrics[metric.type as keyof typeof calculatedMetrics]?.trend || metric.trend
+    })));
+  }, [calculatedMetrics]);
 
   const handleRefreshData = async () => {
     if (!isAdmin) {
@@ -72,51 +125,7 @@ const DashboardMetrics = () => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Generate new mock data for admin
-    const newMetrics = [
-      {
-        title: "Total Sales",
-        value: `$${(2.4 + (Math.random() - 0.5) * 0.5).toFixed(1)}M`,
-        change: `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 20 - 10).toFixed(1)}%`,
-        trend: Math.random() > 0.5 ? "up" : "down",
-        icon: DollarSign,
-        description: "This month",
-        clickable: true,
-        type: "sales"
-      },
-      {
-        title: "Active Leads",
-        value: `${Math.floor(120 + Math.random() * 60)}`,
-        change: `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 15 - 7.5).toFixed(1)}%`,
-        trend: Math.random() > 0.5 ? "up" : "down",
-        icon: Users,
-        description: "Qualified prospects",
-        clickable: true,
-        type: "leads"
-      },
-      {
-        title: "Cars Sold",
-        value: `${Math.floor(50 + Math.random() * 40)}`,
-        change: `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 10 - 5).toFixed(1)}%`,
-        trend: Math.random() > 0.5 ? "up" : "down",
-        icon: Car,
-        description: "This month",
-        clickable: true,
-        type: "cars"
-      },
-      {
-        title: "Conversion Rate",
-        value: `${(20 + Math.random() * 15).toFixed(1)}%`,
-        change: `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 8 - 4).toFixed(1)}%`,
-        trend: Math.random() > 0.5 ? "up" : "down",
-        icon: Target,
-        description: "Lead to sale",
-        clickable: true,
-        type: "conversion"
-      }
-    ];
-
-    setMetrics(newMetrics);
+    // In real app, this would fetch fresh data from database
     setIsRefreshing(false);
     
     toast({
@@ -156,7 +165,7 @@ const DashboardMetrics = () => {
 
     if (metric.clickable && isAdmin) {
       return (
-        <SalesDetailsDialog key={index} type={metric.type as "sales" | "leads" | "cars" | "conversion"}>
+        <SalesDetailsDialog key={index} type={metric.type as "sales" | "leads" | "cars" | "conversion"} employeeData={employeeData}>
           {cardContent}
         </SalesDetailsDialog>
       );
