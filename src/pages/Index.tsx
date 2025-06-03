@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,10 +15,12 @@ import { LoginDialog } from "@/components/LoginDialog";
 import { AdminLoginDialog } from "@/components/AdminLoginDialog";
 import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { user, isLoading } = useAuth();
+  const { tenant } = useTenant();
 
   if (isLoading) {
     return (
@@ -26,7 +29,7 @@ const Index = () => {
           <div className="bg-blue-600 p-4 rounded-lg inline-block mb-4">
             <Car className="h-8 w-8 text-white animate-pulse" />
           </div>
-          <h2 className="text-xl font-semibold text-slate-900">Loading AutoSales AI...</h2>
+          <h2 className="text-xl font-semibold text-slate-900">Loading {tenant.branding.companyName}...</h2>
         </div>
       </div>
     );
@@ -40,15 +43,15 @@ const Index = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-3">
-                <div className="bg-blue-600 p-2 rounded-lg">
+                <div className="p-2 rounded-lg" style={{ backgroundColor: tenant.branding.primaryColor }}>
                   <Car className="h-6 w-6 text-white" />
                 </div>
                 <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold text-slate-900">AutoSales AI</h1>
+                  <h1 className="text-xl font-bold text-slate-900">{tenant.branding.companyName}</h1>
                   <p className="text-sm text-slate-600">Intelligent Sales Management</p>
                 </div>
                 <div className="sm:hidden">
-                  <h1 className="text-lg font-bold text-slate-900">AutoSales AI</h1>
+                  <h1 className="text-lg font-bold text-slate-900">{tenant.branding.companyName}</h1>
                 </div>
               </div>
               
@@ -64,7 +67,7 @@ const Index = () => {
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
           <div className="text-center">
             <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Welcome to AutoSales AI
+              Welcome to {tenant.branding.companyName}
             </h2>
             <p className="text-lg sm:text-xl text-slate-600 mb-8">
               Your intelligent automotive sales management platform
@@ -119,15 +122,15 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
+              <div className="p-2 rounded-lg" style={{ backgroundColor: tenant.branding.primaryColor }}>
                 <Car className="h-6 w-6 text-white" />
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-slate-900">AutoSales AI</h1>
+                <h1 className="text-xl font-bold text-slate-900">{tenant.branding.companyName}</h1>
                 <p className="text-sm text-slate-600">Intelligent Sales Management</p>
               </div>
               <div className="sm:hidden">
-                <h1 className="text-lg font-bold text-slate-900">AutoSales AI</h1>
+                <h1 className="text-lg font-bold text-slate-900">{tenant.branding.companyName}</h1>
               </div>
             </div>
             
