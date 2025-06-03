@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Car, TrendingUp, Users, MessageCircle, Target, BarChart3, PlusCircle, Search, Menu, Settings } from "lucide-react";
+import { Car, TrendingUp, Users, MessageCircle, Target, BarChart3, PlusCircle, Search, Menu, Settings, Calendar, Bell } from "lucide-react";
 import DashboardMetrics from "@/components/DashboardMetrics";
 import LeadManagement from "@/components/LeadManagement";
 import AIAssistant from "@/components/AIAssistant";
@@ -16,9 +17,11 @@ import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import AdminDashboard from "@/components/AdminDashboard";
+import UserCalendar from "@/components/UserCalendar";
+import UserNotifications from "@/components/UserNotifications";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("inventory");
   const { user, isLoading } = useAuth();
   const { tenant } = useTenant();
 
@@ -157,42 +160,78 @@ const Index = () => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          {/* Updated tabs with admin section */}
+          {/* Different tab layouts for user vs admin */}
           <div className="overflow-x-auto">
-            <TabsList className={`grid w-full min-w-max sm:w-auto ${user?.role === 'admin' ? 'grid-cols-5' : 'grid-cols-4'}`}>
-              <TabsTrigger value="dashboard" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
-                <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Dashboard</span>
-                <span className="xs:hidden">Stats</span>
-              </TabsTrigger>
-              <TabsTrigger value="leads" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
-                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>Leads</span>
-              </TabsTrigger>
-              <TabsTrigger value="inventory" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
-                <Car className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Inventory</span>
-                <span className="xs:hidden">Cars</span>
-              </TabsTrigger>
-              <TabsTrigger value="ai-assistant" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
-                <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">AI Assistant</span>
-                <span className="xs:hidden">AI</span>
-              </TabsTrigger>
-              {user?.role === 'admin' && (
+            {user?.role === 'admin' ? (
+              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-5">
+                <TabsTrigger value="dashboard" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Dashboard</span>
+                  <span className="xs:hidden">Stats</span>
+                </TabsTrigger>
+                <TabsTrigger value="leads" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Leads</span>
+                </TabsTrigger>
+                <TabsTrigger value="inventory" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Car className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Inventory</span>
+                  <span className="xs:hidden">Cars</span>
+                </TabsTrigger>
+                <TabsTrigger value="ai-assistant" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">AI Assistant</span>
+                  <span className="xs:hidden">AI</span>
+                </TabsTrigger>
                 <TabsTrigger value="admin" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Admin</span>
                   <span className="xs:hidden">Admin</span>
                 </TabsTrigger>
-              )}
-            </TabsList>
+              </TabsList>
+            ) : (
+              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-5">
+                <TabsTrigger value="inventory" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Car className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Inventory</span>
+                  <span className="xs:hidden">Cars</span>
+                </TabsTrigger>
+                <TabsTrigger value="leads" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Leads</span>
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Calendar</span>
+                  <span className="xs:hidden">Cal</span>
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Notifications</span>
+                  <span className="xs:hidden">Alerts</span>
+                </TabsTrigger>
+                <TabsTrigger value="ai-assistant" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">AI Assistant</span>
+                  <span className="xs:hidden">AI</span>
+                </TabsTrigger>
+              </TabsList>
+            )}
           </div>
 
-          <TabsContent value="dashboard">
-            <DashboardMetrics />
-          </TabsContent>
+          {/* Admin tabs */}
+          {user?.role === 'admin' && (
+            <>
+              <TabsContent value="dashboard">
+                <DashboardMetrics />
+              </TabsContent>
+              <TabsContent value="admin">
+                <AdminDashboard />
+              </TabsContent>
+            </>
+          )}
 
+          {/* Common tabs for both users and admins */}
           <TabsContent value="leads">
             <LeadManagement />
           </TabsContent>
@@ -205,10 +244,16 @@ const Index = () => {
             <AIAssistant />
           </TabsContent>
 
-          {user?.role === 'admin' && (
-            <TabsContent value="admin">
-              <AdminDashboard />
-            </TabsContent>
+          {/* User-specific tabs */}
+          {user?.role !== 'admin' && (
+            <>
+              <TabsContent value="calendar">
+                <UserCalendar />
+              </TabsContent>
+              <TabsContent value="notifications">
+                <UserNotifications />
+              </TabsContent>
+            </>
           )}
         </Tabs>
       </main>
