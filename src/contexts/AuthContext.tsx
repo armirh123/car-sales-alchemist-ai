@@ -22,7 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   const { profile, company, clearUserState, fetchUserData } = useAuthData();
-  const { login, adminLogin, signUp, logout: authLogout } = useAuthActions();
+  const { login, adminLogin: adminLoginAction, signUp, logout: authLogout } = useAuthActions();
 
   const handleUserData = async (userId: string) => {
     const userData = await fetchUserData(userId);
@@ -33,12 +33,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const handleAdminLogin = async (username: string, password: string): Promise<boolean> => {
-    const result = await adminLogin(username, password);
+    console.log('AuthContext: handleAdminLogin called with:', username);
+    const result = await adminLoginAction(username, password);
+    console.log('AuthContext: adminLoginAction result:', result);
+    
     if (result.success && result.user) {
+      console.log('AuthContext: Setting admin user:', result.user);
       setUser(result.user);
       setIsLoading(false);
       return true;
     }
+    console.log('AuthContext: Admin login failed');
     return false;
   };
 
@@ -73,8 +78,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           handleUserData(session.user.id);
         } else {
-          clearUserState();
-          setUser(null);
+          // Only clear user state if it's not an admin user
+          if (!user?.isAdminUser) {
+            clearUserState();
+            setUser(null);
+          }
           setIsLoading(false);
         }
       }

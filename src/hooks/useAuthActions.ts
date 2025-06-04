@@ -44,20 +44,43 @@ export const useAuthActions = () => {
 
     try {
       const sanitizedUsername = sanitizeString(username);
-      console.log('Attempting admin login for:', sanitizedUsername);
+      console.log('useAuthActions: Attempting admin login for:', sanitizedUsername);
       
       // For demo purposes, hardcode admin credentials
       if (sanitizedUsername === 'admin' && password === 'admin') {
-        // Get the default company for admin
-        const { data: companyData, error: companyError } = await supabase
+        console.log('useAuthActions: Demo admin credentials matched');
+        
+        // Get the first company for admin (or create a default one)
+        let { data: companyData, error: companyError } = await supabase
           .from('companies')
           .select('*')
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (companyError || !companyData) {
-          console.error('Failed to fetch company data for admin:', companyError);
-          return { success: false };
+          console.log('useAuthActions: No company found, using default company data');
+          // Create a default company object for demo
+          companyData = {
+            id: '00000000-0000-0000-0000-000000000001',
+            name: 'Demo Company',
+            subdomain: 'demo',
+            subscription_plan: 'enterprise',
+            subscription_status: 'active',
+            settings: {
+              branding: {
+                companyName: 'Demo Company',
+                primaryColor: '#2563eb'
+              },
+              features: {
+                maxUsers: 100,
+                multiUser: true,
+                aiAssistant: true,
+                advancedReporting: true
+              }
+            },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
         }
 
         // Create admin user object
@@ -71,23 +94,24 @@ export const useAuthActions = () => {
           isAdminUser: true
         };
 
-        console.log('Admin login successful');
+        console.log('useAuthActions: Admin login successful, returning user:', adminUser);
         return { success: true, user: adminUser };
       }
 
       // Try database lookup for other admin users
+      console.log('useAuthActions: Checking database for admin credentials');
       const { data: adminData, error } = await supabase.rpc('validate_admin_login', {
         p_username: sanitizedUsername,
         p_password: password
       });
 
       if (error) {
-        console.error('Admin login database error:', error);
+        console.error('useAuthActions: Admin login database error:', error);
         return { success: false };
       }
 
       if (!adminData || adminData.length === 0) {
-        console.error('Invalid admin credentials - no matching admin found');
+        console.error('useAuthActions: Invalid admin credentials - no matching admin found');
         return { success: false };
       }
 
@@ -101,7 +125,7 @@ export const useAuthActions = () => {
         .single();
 
       if (companyError || !companyData) {
-        console.error('Failed to fetch company data for admin:', companyError);
+        console.error('useAuthActions: Failed to fetch company data for admin:', companyError);
         return { success: false };
       }
 
@@ -118,7 +142,7 @@ export const useAuthActions = () => {
 
       return { success: true, user: adminUser };
     } catch (error) {
-      console.error('Admin login error:', error);
+      console.error('useAuthActions: Admin login error:', error);
       return { success: false };
     }
   };

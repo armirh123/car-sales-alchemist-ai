@@ -38,6 +38,7 @@ export function AdminLoginDialog() {
 
   // Close dialog when admin logs in successfully
   if (user?.isAdminUser && isOpen) {
+    console.log('AdminLoginDialog: Admin user detected, closing dialog');
     setIsOpen(false);
     resetForm();
   }
@@ -57,8 +58,9 @@ export function AdminLoginDialog() {
     setIsLoggingIn(true);
 
     try {
-      console.log('Attempting admin login with:', username);
+      console.log('AdminLoginDialog: Attempting admin login with:', username);
       const success = await adminLogin(username, password);
+      console.log('AdminLoginDialog: Admin login result:', success);
       
       if (success) {
         toast({
@@ -75,7 +77,7 @@ export function AdminLoginDialog() {
         });
       }
     } catch (error) {
-      console.error('Admin login error:', error);
+      console.error('AdminLoginDialog: Admin login error:', error);
       toast({
         title: "Login Error",
         description: "An unexpected error occurred during admin login. Please try again.",
