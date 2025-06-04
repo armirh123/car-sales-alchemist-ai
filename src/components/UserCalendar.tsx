@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -388,7 +387,7 @@ const UserCalendar = () => {
                     <div key={appointment.id} className="border rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-sm">{appointment.title}</span>
-                        <Badge className={getTypeColor(appointment.type)} size="sm">
+                        <Badge className={getTypeColor(appointment.type)}>
                           {appointment.type.replace('_', ' ')}
                         </Badge>
                       </div>

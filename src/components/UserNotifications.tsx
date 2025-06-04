@@ -259,10 +259,10 @@ const UserNotifications = () => {
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-1">
                               <h4 className="font-medium text-sm">{notification.title}</h4>
-                              <Badge className={getTypeColor(notification.type)} size="sm">
+                              <Badge className={getTypeColor(notification.type)}>
                                 {notification.type}
                               </Badge>
-                              <Badge className={getPriorityColor(notification.priority)} size="sm">
+                              <Badge className={getPriorityColor(notification.priority)}>
                                 {notification.priority}
                               </Badge>
                               {notification.actionRequired && (
