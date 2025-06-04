@@ -69,8 +69,8 @@ export function AdminLoginDialog() {
         resetForm();
       } else {
         toast({
-          title: "Admin Login Failed",
-          description: "Invalid admin credentials. Please check your username and password. For demo, try: username 'admin' and password 'admin'",
+          title: "Admin Login Failed", 
+          description: "Invalid admin credentials. For demo, use username 'admin' and password 'admin'",
           variant: "destructive",
         });
       }

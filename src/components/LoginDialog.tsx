@@ -47,7 +47,7 @@ export function LoginDialog() {
   };
 
   // Close dialog when user logs in successfully
-  if (user && isOpen) {
+  if (user && !user.isAdminUser && isOpen) {
     setIsOpen(false);
     resetForm();
   }
