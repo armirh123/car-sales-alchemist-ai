@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,12 +17,29 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  if (user?.role !== 'admin') {
+  // Check if user has admin access (either admin/owner role or isAdminUser flag)
+  const hasAdminAccess = user && (
+    user.role === 'admin' || 
+    user.role === 'owner' || 
+    user.isAdminUser === true
+  );
+
+  if (!hasAdminAccess) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Access Denied</CardTitle>
-          <CardDescription>This section is only available to administrators</CardDescription>
+          <CardTitle className="flex items-center space-x-2">
+            <Shield className="h-5 w-5 text-red-500" />
+            <span>Access Denied</span>
+          </CardTitle>
+          <CardDescription>
+            This section is only available to administrators and company owners.
+            {user && (
+              <span className="block mt-2 text-sm">
+                Current role: <Badge variant="outline">{user.role}</Badge>
+              </span>
+            )}
+          </CardDescription>
         </CardHeader>
       </Card>
     );
@@ -62,9 +78,16 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
-        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-          Super Admin Access
-        </Badge>
+        <div className="flex items-center space-x-2">
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+            {user.isAdminUser ? 'Company Admin' : 'Super Admin Access'}
+          </Badge>
+          {user.company && (
+            <Badge variant="outline" className="text-blue-600">
+              {user.company.name}
+            </Badge>
+          )}
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

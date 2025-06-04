@@ -14,6 +14,7 @@ interface AuthUser {
   name: string;
   company_id: string;
   company: Company;
+  isAdminUser?: boolean; // Flag to identify admin table users
 }
 
 interface AuthContextType {
@@ -54,6 +55,14 @@ const validatePassword = (password: string): boolean => {
 
 const sanitizeString = (input: string): string => {
   return input.trim().replace(/[<>]/g, '');
+};
+
+// Helper function to validate admin credentials
+const validateAdminCredentials = (username: string, password: string): boolean => {
+  return typeof username === 'string' && 
+         typeof password === 'string' && 
+         username.trim().length > 0 && 
+         password.length > 0;
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -218,55 +227,84 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const adminLogin = async (username: string, password: string): Promise<boolean> => {
     // Input validation
-    if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
+    if (!validateAdminCredentials(username, password)) {
       console.error('Invalid admin credentials format');
       return false;
     }
 
-    const sanitizedUsername = sanitizeString(username);
-    
-    // For demo purposes - in production, this should use proper admin authentication
-    if (sanitizedUsername === 'admin' && password === 'admin') {
-      // Create a mock admin user for demo
-      const mockAdminUser: AuthUser = {
-        id: 'admin-demo',
-        email: 'admin@demo.com',
-        role: 'owner',
-        name: 'System Admin',
-        company_id: 'demo-company',
-        company: {
-          id: 'demo-company',
-          name: 'Demo Company',
-          subdomain: 'demo',
-          subscription_plan: 'enterprise',
-          subscription_status: 'active',
-          settings: {
-            branding: {
-              primaryColor: '#2563eb',
-              companyName: 'Demo Company'
-            },
-            features: {
-              aiAssistant: true,
-              advancedReporting: true,
-              multiUser: true,
-              maxUsers: 100
-            }
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
+    try {
+      const sanitizedUsername = sanitizeString(username);
+      
+      // Call the database function to validate admin login
+      const { data: adminData, error } = await supabase.rpc('validate_admin_login', {
+        p_username: sanitizedUsername,
+        p_password: password
+      });
+
+      if (error) {
+        console.error('Admin login database error:', error);
+        return false;
+      }
+
+      if (!adminData || adminData.length === 0) {
+        console.error('Invalid admin credentials');
+        return false;
+      }
+
+      const admin = adminData[0];
+
+      // Fetch company data for the admin
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', admin.company_id)
+        .single();
+
+      if (companyError || !companyData) {
+        console.error('Failed to fetch company data for admin:', companyError);
+        return false;
+      }
+
+      // Create admin user object
+      const adminUser: AuthUser = {
+        id: admin.admin_id,
+        email: admin.email || 'admin@demo.com',
+        role: admin.role as 'owner' | 'admin',
+        name: sanitizeString(`${admin.first_name || ''} ${admin.last_name || ''}`.trim() || 'Admin'),
+        company_id: admin.company_id,
+        company: companyData,
+        isAdminUser: true // Flag to identify admin table users
       };
-      setUser(mockAdminUser);
+
+      setUser(adminUser);
+      setCompany(companyData);
+
+      // Update last login timestamp
+      try {
+        await supabase
+          .from('admin_users')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', admin.admin_id);
+      } catch (updateError) {
+        console.warn('Failed to update admin last login:', updateError);
+        // Don't fail the login for this
+      }
+
       return true;
+    } catch (error) {
+      console.error('Admin login error:', error);
+      return false;
     }
-    return false;
   };
 
   const logout = async (): Promise<void> => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Logout error:', error);
+      // Only sign out from Supabase if it's not an admin user
+      if (!user?.isAdminUser) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('Logout error:', error);
+        }
       }
       
       // Clear all state
