@@ -10,12 +10,21 @@ const UserProfileButton = () => {
 
   if (!user) return null;
 
+  const handleProfileClick = () => {
+    try {
+      navigate('/profile');
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
+  };
+
   return (
     <Button 
       variant="outline" 
       size="sm" 
       className="flex items-center space-x-2"
-      onClick={() => navigate('/profile')}
+      onClick={handleProfileClick}
+      aria-label="Go to profile page"
     >
       <User className="h-4 w-4" />
       <span className="hidden sm:inline">Profile</span>

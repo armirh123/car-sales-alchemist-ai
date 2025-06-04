@@ -11,6 +11,19 @@ interface ProtectedRouteProps {
   requiredRole?: 'owner' | 'admin' | 'manager' | 'salesperson';
 }
 
+// Role hierarchy for security checks
+const ROLE_HIERARCHY = {
+  'salesperson': 1,
+  'manager': 2,
+  'admin': 3,
+  'owner': 4
+} as const;
+
+// Input validation for role
+const isValidRole = (role: string): role is keyof typeof ROLE_HIERARCHY => {
+  return role in ROLE_HIERARCHY;
+};
+
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -56,17 +69,62 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     );
   }
 
-  // Check role-based access
+  // Check role-based access with proper validation
   if (requiredRole) {
-    const roleHierarchy = {
-      'salesperson': 1,
-      'manager': 2,
-      'admin': 3,
-      'owner': 4
-    };
+    // Validate user role
+    if (!isValidRole(user.role)) {
+      console.error('Invalid user role:', user.role);
+      return (
+        <div className="container mx-auto px-4 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardHeader className="text-center">
+              <Shield className="h-12 w-12 mx-auto mb-4 text-red-500" />
+              <CardTitle>Invalid User Role</CardTitle>
+              <CardDescription>
+                Your account has an invalid role assignment. Please contact support.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => navigate('/')} 
+                className="w-full"
+              >
+                Go Back
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
 
-    const userLevel = roleHierarchy[user.role] || 0;
-    const requiredLevel = roleHierarchy[requiredRole] || 0;
+    // Validate required role
+    if (!isValidRole(requiredRole)) {
+      console.error('Invalid required role:', requiredRole);
+      return (
+        <div className="container mx-auto px-4 py-8">
+          <Card className="max-w-md mx-auto">
+            <CardHeader className="text-center">
+              <Shield className="h-12 w-12 mx-auto mb-4 text-red-500" />
+              <CardTitle>Configuration Error</CardTitle>
+              <CardDescription>
+                This page has an invalid role requirement. Please contact support.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => navigate('/')} 
+                className="w-full"
+              >
+                Go Back
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    const userLevel = ROLE_HIERARCHY[user.role];
+    const requiredLevel = ROLE_HIERARCHY[requiredRole];
 
     if (userLevel < requiredLevel) {
       return (

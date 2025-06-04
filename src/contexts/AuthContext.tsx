@@ -42,6 +42,20 @@ export const useAuth = () => {
   return context;
 };
 
+// Input validation helper
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+};
+
+const validatePassword = (password: string): boolean => {
+  return password.length >= 6 && password.length <= 128;
+};
+
+const sanitizeString = (input: string): string => {
+  return input.trim().replace(/[<>]/g, '');
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -50,8 +64,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchUserData = async (userId: string) => {
+    if (!userId || typeof userId !== 'string') {
+      console.error('Invalid user ID provided');
+      return;
+    }
+
     try {
-      // Fetch user profile
+      // Fetch user profile with error handling
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -63,9 +82,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      if (!profileData) return;
+      if (!profileData) {
+        console.warn('No profile data found for user');
+        return;
+      }
 
-      // Fetch company data
+      // Validate profile data
+      if (!profileData.company_id) {
+        console.error('Profile missing company_id');
+        return;
+      }
+
+      // Fetch company data with error handling
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
@@ -77,35 +105,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      if (!companyData) {
+        console.warn('No company data found');
+        return;
+      }
+
       setProfile(profileData);
       setCompany(companyData);
 
-      // Create user object for backward compatibility
+      // Create sanitized user object
       const authUser: AuthUser = {
         id: profileData.id,
         email: profileData.email,
         role: profileData.role as 'owner' | 'admin' | 'manager' | 'salesperson',
-        name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.email,
+        name: sanitizeString(`${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.email),
         company_id: profileData.company_id,
         company: companyData
       };
 
       setUser(authUser);
 
-      // Update last login
+      // Update last login timestamp
       await supabase
         .from('profiles')
         .update({ last_login: new Date().toISOString() })
         .eq('id', userId);
     } catch (error) {
       console.error('Error fetching user data:', error);
+      // Clear user state on error
+      setUser(null);
+      setProfile(null);
+      setCompany(null);
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         
@@ -122,7 +163,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        setIsLoading(false);
+        return;
+      }
+
       setSession(session);
       if (session?.user) {
         fetchUserData(session.user.id);
@@ -131,18 +180,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    // Input validation
+    if (!validateEmail(email) || !validatePassword(password)) {
+      console.error('Invalid email or password format');
+      return false;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: sanitizeString(email),
+        password: password
       });
 
       if (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error.message);
+        return false;
+      }
+
+      if (!data.user) {
+        console.error('No user data returned from login');
         return false;
       }
 
@@ -154,8 +217,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const adminLogin = async (username: string, password: string): Promise<boolean> => {
+    // Input validation
+    if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
+      console.error('Invalid admin credentials format');
+      return false;
+    }
+
+    const sanitizedUsername = sanitizeString(username);
+    
     // For demo purposes - in production, this should use proper admin authentication
-    if (username === 'admin' && password === 'admin') {
+    if (sanitizedUsername === 'admin' && password === 'admin') {
       // Create a mock admin user for demo
       const mockAdminUser: AuthUser = {
         id: 'admin-demo',
@@ -193,7 +264,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async (): Promise<void> => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+      }
+      
+      // Clear all state
       setUser(null);
       setSession(null);
       setProfile(null);
@@ -212,18 +288,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       company_name?: string;
     }
   ): Promise<{ error: string | null }> => {
+    // Input validation
+    if (!validateEmail(email)) {
+      return { error: 'Invalid email format' };
+    }
+
+    if (!validatePassword(password)) {
+      return { error: 'Password must be between 6 and 128 characters' };
+    }
+
+    if (!userData.first_name || !userData.last_name) {
+      return { error: 'First name and last name are required' };
+    }
+
     try {
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: sanitizeString(email),
+        password: password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            first_name: userData.first_name,
-            last_name: userData.last_name,
-            company_name: userData.company_name || `${userData.first_name}'s Company`
+            first_name: sanitizeString(userData.first_name),
+            last_name: sanitizeString(userData.last_name),
+            company_name: userData.company_name ? sanitizeString(userData.company_name) : `${sanitizeString(userData.first_name)}'s Company`
           }
         }
       });
@@ -234,7 +323,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error: null };
     } catch (error: any) {
-      return { error: error.message || 'An error occurred during sign up' };
+      console.error('SignUp error:', error);
+      return { error: error?.message || 'An error occurred during sign up' };
     }
   };
 
