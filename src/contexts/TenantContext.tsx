@@ -1,58 +1,66 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { TenantConfig, getCurrentTenant } from '@/utils/tenantUtils';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
+
+interface TenantBranding {
+  primaryColor: string;
+  companyName: string;
+  logo?: string;
+}
+
+interface TenantFeatures {
+  aiAssistant: boolean;
+  advancedReporting: boolean;
+  multiUser: boolean;
+  maxUsers: number;
+}
 
 interface TenantContextType {
-  tenant: TenantConfig;
+  tenant: {
+    branding: TenantBranding;
+    features: TenantFeatures;
+  };
   isLoading: boolean;
 }
 
-const TenantContext = createContext<TenantContextType | undefined>(undefined);
+const TenantContext = createContext<TenantContextType>({} as TenantContextType);
 
 export const useTenant = () => {
   const context = useContext(TenantContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useTenant must be used within a TenantProvider');
   }
   return context;
 };
 
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tenant, setTenant] = useState<TenantConfig | null>(null);
+  const { company, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [tenant, setTenant] = useState({
+    branding: {
+      primaryColor: '#2563eb',
+      companyName: 'AutoSales AI'
+    },
+    features: {
+      aiAssistant: true,
+      advancedReporting: false,
+      multiUser: true,
+      maxUsers: 5
+    }
+  });
 
   useEffect(() => {
-    const loadTenant = () => {
-      try {
-        const currentTenant = getCurrentTenant();
-        setTenant(currentTenant);
-        
-        // Apply tenant branding to CSS variables
-        document.documentElement.style.setProperty('--tenant-primary', currentTenant.branding.primaryColor);
-        document.title = `${currentTenant.branding.companyName} - AutoSales AI`;
-        
-      } catch (error) {
-        console.error('Error loading tenant:', error);
-      } finally {
-        setIsLoading(false);
+    if (!authLoading) {
+      if (company?.settings) {
+        setTenant({
+          branding: company.settings.branding,
+          features: company.settings.features
+        });
       }
-    };
-
-    loadTenant();
-  }, []);
-
-  if (isLoading || !tenant) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="bg-blue-600 p-4 rounded-lg inline-block mb-4">
-            <div className="h-8 w-8 text-white animate-pulse">🚗</div>
-          </div>
-          <h2 className="text-xl font-semibold text-slate-900">Loading...</h2>
-        </div>
-      </div>
-    );
-  }
+      setIsLoading(false);
+    }
+  }, [company, authLoading]);
 
   return (
     <TenantContext.Provider value={{ tenant, isLoading }}>

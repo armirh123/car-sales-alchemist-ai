@@ -52,32 +52,8 @@ const UserCalendar = () => {
   const [isAddingEvent, setIsAddingEvent] = useState(false);
   const { toast } = useToast();
 
-  // Mock appointments data
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: "1",
-      title: "Test Drive - Honda Civic",
-      description: "Customer interested in 2023 Honda Civic",
-      date: new Date(),
-      time: "10:00 AM",
-      type: "test_drive",
-      client: "John Smith",
-      phone: "(555) 123-4567",
-      location: "Dealership Lot",
-      status: "scheduled"
-    },
-    {
-      id: "2",
-      title: "Follow-up Call",
-      description: "Follow up on Toyota Camry inquiry",
-      date: new Date(Date.now() + 86400000), // Tomorrow
-      time: "2:00 PM",
-      type: "follow_up",
-      client: "Sarah Johnson",
-      phone: "(555) 987-6543",
-      status: "scheduled"
-    }
-  ]);
+  // Start with empty appointments - users will add their own data
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -301,9 +277,13 @@ const UserCalendar = () => {
               </CardHeader>
               <CardContent>
                 {selectedDateAppointments.length === 0 ? (
-                  <p className="text-slate-500 text-center py-8">
-                    No appointments scheduled for this date
-                  </p>
+                  <div className="text-center py-8">
+                    <p className="text-slate-500 mb-4">No appointments scheduled for this date</p>
+                    <Button onClick={() => setIsAddingEvent(true)} variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Appointment
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {selectedDateAppointments.map((appointment) => (
@@ -378,9 +358,13 @@ const UserCalendar = () => {
             </CardHeader>
             <CardContent>
               {todayAppointments.length === 0 ? (
-                <p className="text-slate-500 text-center py-4">
-                  No appointments today
-                </p>
+                <div className="text-center py-4">
+                  <p className="text-slate-500 mb-4">No appointments today</p>
+                  <Button onClick={() => setIsAddingEvent(true)} variant="outline" size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Appointment
+                  </Button>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {todayAppointments.map((appointment) => (

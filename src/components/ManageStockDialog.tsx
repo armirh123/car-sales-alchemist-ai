@@ -107,7 +107,7 @@ const ManageStockDialog = ({ onAddCar }: ManageStockDialogProps) => {
     
     toast({
       title: "Success",
-      description: "Car added to inventory successfully"
+      description: "Vehicle added to inventory successfully"
     });
 
     // Reset form
@@ -131,7 +131,7 @@ const ManageStockDialog = ({ onAddCar }: ManageStockDialogProps) => {
       <DialogTrigger asChild>
         <Button className="bg-green-600 hover:bg-green-700">
           <Plus className="h-4 w-4 mr-2" />
-          Manage Stock
+          Add Vehicle
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
