@@ -9,14 +9,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { User, LogOut, Settings, Shield } from "lucide-react";
 
 export function UserMenu() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   if (!user) return null;
 
-  const isAdmin = user.role === 'admin';
+  const isAdmin = user.role === 'admin' || user.role === 'owner';
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
 
   return (
     <DropdownMenu>
@@ -31,11 +37,11 @@ export function UserMenu() {
           {isAdmin ? 'Admin Account' : 'My Account'}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem className="cursor-pointer" onClick={handleProfileClick}>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem className="cursor-pointer" onClick={handleProfileClick}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>
