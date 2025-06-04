@@ -15,6 +15,11 @@ interface TenantFeatures {
   maxUsers: number;
 }
 
+interface CompanySettings {
+  branding: TenantBranding;
+  features: TenantFeatures;
+}
+
 interface TenantContextType {
   tenant: {
     branding: TenantBranding;
@@ -53,9 +58,11 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!authLoading) {
       if (company?.settings) {
+        // Safely parse the JSON settings
+        const settings = company.settings as CompanySettings;
         setTenant({
-          branding: company.settings.branding,
-          features: company.settings.features
+          branding: settings.branding,
+          features: settings.features
         });
       }
       setIsLoading(false);
