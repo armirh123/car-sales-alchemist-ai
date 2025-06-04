@@ -82,9 +82,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch user profile with type assertion to handle the empty schema
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles' as any)
+      // Fetch user profile - using any cast to bypass type checking
+      const { data: profileData, error: profileError } = await (supabase as any)
+        .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
@@ -96,9 +96,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!profileData) return;
 
-      // Fetch company data with type assertion
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies' as any)
+      // Fetch company data - using any cast to bypass type checking
+      const { data: companyData, error: companyError } = await (supabase as any)
+        .from('companies')
         .select('*')
         .eq('id', profileData.company_id)
         .single();
@@ -123,10 +123,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(authUser);
 
-      // Update last login with type assertion
-      await supabase
-        .from('profiles' as any)
-        .update({ last_login: new Date().toISOString() } as any)
+      // Update last login - using any cast to bypass type checking
+      await (supabase as any)
+        .from('profiles')
+        .update({ last_login: new Date().toISOString() })
         .eq('id', userId);
     } catch (error) {
       console.error('Error fetching user data:', error);
