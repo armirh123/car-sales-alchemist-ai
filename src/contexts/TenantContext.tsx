@@ -58,8 +58,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     if (!authLoading) {
       if (company?.settings) {
-        // Safely parse the JSON settings
-        const settings = company.settings as CompanySettings;
+        // Safely parse the JSON settings with proper type casting
+        const settings = company.settings as unknown as CompanySettings;
         setTenant({
           branding: settings.branding,
           features: settings.features
