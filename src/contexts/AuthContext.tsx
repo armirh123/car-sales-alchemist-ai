@@ -82,9 +82,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch user profile
+      // Fetch user profile with type assertion to handle the empty schema
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+        .from('profiles' as any)
         .select('*')
         .eq('id', userId)
         .single();
@@ -96,9 +96,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!profileData) return;
 
-      // Fetch company data
+      // Fetch company data with type assertion
       const { data: companyData, error: companyError } = await supabase
-        .from('companies')
+        .from('companies' as any)
         .select('*')
         .eq('id', profileData.company_id)
         .single();
@@ -108,8 +108,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      setProfile(profileData);
-      setCompany(companyData);
+      setProfile(profileData as Profile);
+      setCompany(companyData as Company);
 
       // Create user object for backward compatibility
       const authUser: AuthUser = {
@@ -118,15 +118,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: profileData.role,
         name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.email,
         company_id: profileData.company_id,
-        company: companyData
+        company: companyData as Company
       };
 
       setUser(authUser);
 
-      // Update last login
+      // Update last login with type assertion
       await supabase
-        .from('profiles')
-        .update({ last_login: new Date().toISOString() })
+        .from('profiles' as any)
+        .update({ last_login: new Date().toISOString() } as any)
         .eq('id', userId);
     } catch (error) {
       console.error('Error fetching user data:', error);
