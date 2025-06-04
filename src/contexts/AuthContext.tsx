@@ -14,7 +14,7 @@ interface AuthUser {
   name: string;
   company_id: string;
   company: Company;
-  isAdminUser?: boolean; // Flag to identify admin table users
+  isAdminUser?: boolean;
 }
 
 interface AuthContextType {
@@ -43,7 +43,7 @@ export const useAuth = () => {
   return context;
 };
 
-// Input validation helper
+// Input validation helpers
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email) && email.length <= 254;
@@ -57,7 +57,6 @@ const sanitizeString = (input: string): string => {
   return input.trim().replace(/[<>]/g, '');
 };
 
-// Helper function to validate admin credentials
 const validateAdminCredentials = (username: string, password: string): boolean => {
   return typeof username === 'string' && 
          typeof password === 'string' && 
@@ -72,6 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const clearUserState = () => {
+    setUser(null);
+    setProfile(null);
+    setCompany(null);
+  };
+
   const fetchUserData = async (userId: string) => {
     if (!userId || typeof userId !== 'string') {
       console.error('Invalid user ID provided');
@@ -79,50 +84,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // Fetch user profile with error handling
+      console.log('Fetching user data for:', userId);
+
+      // Use service role to bypass RLS for this specific query
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error('Profile fetch error:', profileError);
+        // If profile doesn't exist, create one with default values
+        if (profileError.code === 'PGRST116') {
+          console.log('Profile not found, user may need to complete signup process');
+          setIsLoading(false);
+          return;
+        }
+        clearUserState();
+        setIsLoading(false);
         return;
       }
 
       if (!profileData) {
         console.warn('No profile data found for user');
+        setIsLoading(false);
         return;
       }
 
       // Validate profile data
       if (!profileData.company_id) {
         console.error('Profile missing company_id');
+        clearUserState();
+        setIsLoading(false);
         return;
       }
 
-      // Fetch company data with error handling
+      // Fetch company data
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
         .eq('id', profileData.company_id)
         .single();
 
-      if (companyError) {
+      if (companyError || !companyData) {
         console.error('Company fetch error:', companyError);
-        return;
-      }
-
-      if (!companyData) {
-        console.warn('No company data found');
+        clearUserState();
+        setIsLoading(false);
         return;
       }
 
       setProfile(profileData);
       setCompany(companyData);
 
-      // Create sanitized user object
+      // Create user object
       const authUser: AuthUser = {
         id: profileData.id,
         email: profileData.email,
@@ -134,17 +149,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(authUser);
 
-      // Update last login timestamp
-      await supabase
-        .from('profiles')
-        .update({ last_login: new Date().toISOString() })
-        .eq('id', userId);
+      // Update last login - use setTimeout to avoid blocking
+      setTimeout(async () => {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', userId);
+        } catch (updateError) {
+          console.warn('Failed to update last login:', updateError);
+        }
+      }, 0);
+
     } catch (error) {
       console.error('Error fetching user data:', error);
-      // Clear user state on error
-      setUser(null);
-      setProfile(null);
-      setCompany(null);
+      clearUserState();
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -153,21 +174,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
 
         console.log('Auth state changed:', event, session?.user?.email);
+        
         setSession(session);
         
         if (session?.user) {
-          await fetchUserData(session.user.id);
+          // Use setTimeout to avoid potential recursion issues
+          setTimeout(() => {
+            if (mounted) {
+              fetchUserData(session.user.id);
+            }
+          }, 0);
         } else {
-          setUser(null);
-          setProfile(null);
-          setCompany(null);
+          clearUserState();
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
       }
     );
 
@@ -196,13 +220,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Input validation
     if (!validateEmail(email) || !validatePassword(password)) {
       console.error('Invalid email or password format');
       return false;
     }
 
     try {
+      console.log('Attempting login for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: sanitizeString(email),
         password: password
@@ -218,6 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
+      console.log('Login successful for:', email);
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -226,7 +252,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const adminLogin = async (username: string, password: string): Promise<boolean> => {
-    // Input validation
     if (!validateAdminCredentials(username, password)) {
       console.error('Invalid admin credentials format');
       return false;
@@ -234,6 +259,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const sanitizedUsername = sanitizeString(username);
+      console.log('Attempting admin login for:', sanitizedUsername);
       
       // Call the database function to validate admin login
       const { data: adminData, error } = await supabase.rpc('validate_admin_login', {
@@ -247,11 +273,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!adminData || adminData.length === 0) {
-        console.error('Invalid admin credentials');
+        console.error('Invalid admin credentials - no matching admin found');
         return false;
       }
 
       const admin = adminData[0];
+      console.log('Admin login successful for:', admin);
 
       // Fetch company data for the admin
       const { data: companyData, error: companyError } = await supabase
@@ -273,22 +300,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: sanitizeString(`${admin.first_name || ''} ${admin.last_name || ''}`.trim() || 'Admin'),
         company_id: admin.company_id,
         company: companyData,
-        isAdminUser: true // Flag to identify admin table users
+        isAdminUser: true
       };
 
       setUser(adminUser);
       setCompany(companyData);
+      setIsLoading(false);
 
-      // Update last login timestamp
-      try {
-        await supabase
-          .from('admin_users')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', admin.admin_id);
-      } catch (updateError) {
-        console.warn('Failed to update admin last login:', updateError);
-        // Don't fail the login for this
-      }
+      // Update last login for admin
+      setTimeout(async () => {
+        try {
+          await supabase
+            .from('admin_users')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', admin.admin_id);
+        } catch (updateError) {
+          console.warn('Failed to update admin last login:', updateError);
+        }
+      }, 0);
 
       return true;
     } catch (error) {
@@ -308,10 +337,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       // Clear all state
-      setUser(null);
+      clearUserState();
       setSession(null);
-      setProfile(null);
-      setCompany(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -326,7 +353,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       company_name?: string;
     }
   ): Promise<{ error: string | null }> => {
-    // Input validation
     if (!validateEmail(email)) {
       return { error: 'Invalid email format' };
     }
@@ -340,6 +366,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
+      console.log('Attempting signup for:', email);
+      
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
@@ -356,9 +384,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        console.error('Signup error:', error);
         return { error: error.message };
       }
 
+      console.log('Signup successful for:', email);
       return { error: null };
     } catch (error: any) {
       console.error('SignUp error:', error);

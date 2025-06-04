@@ -11,50 +11,88 @@ import {
 import { Button } from "./ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2, Shield, Info, CheckCircle } from "lucide-react";
 
 export function AdminLoginDialog() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const { adminLogin, isLoading } = useAuth();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { adminLogin, user } = useAuth();
   const { toast } = useToast();
+
+  // Close dialog when admin logs in successfully
+  if (user?.isAdminUser && isOpen) {
+    setIsOpen(false);
+    resetForm();
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!username || !password) {
       toast({
-        title: "Error",
+        title: "Missing Information",
         description: "Please fill in all fields",
         variant: "destructive",
       });
       return;
     }
 
-    const success = await adminLogin(username, password);
-    
-    if (success) {
+    setIsLoggingIn(true);
+
+    try {
+      console.log('Attempting admin login with:', username);
+      const success = await adminLogin(username, password);
+      
+      if (success) {
+        toast({
+          title: "Admin Access Granted",
+          description: "Welcome to the admin dashboard!",
+        });
+        setIsOpen(false);
+        resetForm();
+      } else {
+        toast({
+          title: "Admin Login Failed",
+          description: "Invalid admin credentials. Please check your username and password. For demo, try: username 'admin' and password 'admin'",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Admin login error:', error);
       toast({
-        title: "Success",
-        description: "Admin logged in successfully!",
-      });
-      setIsOpen(false);
-      setUsername("");
-      setPassword("");
-    } else {
-      toast({
-        title: "Error",
-        description: "Invalid admin credentials. Try admin / admin",
+        title: "Login Error",
+        description: "An unexpected error occurred during admin login. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
+  const resetForm = () => {
+    setUsername("");
+    setPassword("");
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      resetForm();
+    }
+  };
+
+  const handleDemoLogin = () => {
+    setUsername("admin");
+    setPassword("admin");
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogTrigger asChild>
         <Button variant="outline" size="lg" className="flex items-center space-x-2">
           <Shield className="h-4 w-4" />
@@ -68,55 +106,81 @@ export function AdminLoginDialog() {
             <span>Admin Login</span>
           </DialogTitle>
           <DialogDescription>
-            Enter admin credentials to access management dashboard.
-            <br />
-            <span className="text-sm text-muted-foreground mt-2 block">
-              Demo: admin / admin
-            </span>
+            Enter admin credentials to access the management dashboard.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="admin-username" className="text-right">
-                Username
-              </Label>
+
+        <div className="space-y-4">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Demo Credentials:</strong><br />
+              Username: admin<br />
+              Password: admin
+              <Button 
+                type="button" 
+                variant="link" 
+                size="sm" 
+                onClick={handleDemoLogin}
+                className="h-auto p-0 ml-2 text-blue-600"
+              >
+                Fill Demo Credentials
+              </Button>
+            </AlertDescription>
+          </Alert>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-username">Admin Username</Label>
               <Input 
                 id="admin-username" 
                 type="text" 
-                className="col-span-3"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
-                disabled={isLoading}
+                placeholder="Enter admin username"
+                disabled={isLoggingIn}
+                required
+                autoComplete="username"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="admin-password" className="text-right">
-                Password
-              </Label>
+            <div className="space-y-2">
+              <Label htmlFor="admin-password">Admin Password</Label>
               <Input 
                 id="admin-password" 
                 type="password" 
-                className="col-span-3"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="admin"
-                disabled={isLoading}
+                placeholder="Enter admin password"
+                disabled={isLoggingIn}
+                required
+                autoComplete="current-password"
               />
             </div>
-          </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Logging in...
-              </>
-            ) : (
-              "Admin Login"
-            )}
-          </Button>
-        </form>
+            
+            <Button type="submit" className="w-full" disabled={isLoggingIn}>
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Authenticating...
+                </>
+              ) : (
+                <>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin Login
+                </>
+              )}
+            </Button>
+          </form>
+
+          {user?.isAdminUser && (
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <strong>Admin access active!</strong> You can close this dialog to access the admin dashboard.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
