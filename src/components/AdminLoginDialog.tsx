@@ -24,6 +24,18 @@ export function AdminLoginDialog() {
   const { adminLogin, user } = useAuth();
   const { toast } = useToast();
 
+  const resetForm = () => {
+    setUsername("");
+    setPassword("");
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      resetForm();
+    }
+  };
+
   // Close dialog when admin logs in successfully
   if (user?.isAdminUser && isOpen) {
     setIsOpen(false);
@@ -71,18 +83,6 @@ export function AdminLoginDialog() {
       });
     } finally {
       setIsLoggingIn(false);
-    }
-  };
-
-  const resetForm = () => {
-    setUsername("");
-    setPassword("");
-  };
-
-  const handleDialogClose = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      resetForm();
     }
   };
 

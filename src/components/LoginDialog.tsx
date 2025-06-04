@@ -30,6 +30,22 @@ export function LoginDialog() {
   const { login, signUp, user } = useAuth();
   const { toast } = useToast();
 
+  const resetForm = () => {
+    setEmail("");
+    setPassword("");
+    setFirstName("");
+    setLastName("");
+    setCompanyName("");
+    setShowEmailConfirmation(false);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      resetForm();
+    }
+  };
+
   // Close dialog when user logs in successfully
   if (user && isOpen) {
     setIsOpen(false);
@@ -129,22 +145,6 @@ export function LoginDialog() {
       });
     } finally {
       setIsSigningUp(false);
-    }
-  };
-
-  const resetForm = () => {
-    setEmail("");
-    setPassword("");
-    setFirstName("");
-    setLastName("");
-    setCompanyName("");
-    setShowEmailConfirmation(false);
-  };
-
-  const handleDialogClose = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      resetForm();
     }
   };
 
