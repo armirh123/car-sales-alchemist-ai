@@ -2,41 +2,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
 
-interface Profile {
-  id: string;
-  company_id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  role: 'owner' | 'admin' | 'manager' | 'salesperson';
-  phone: string | null;
-  avatar_url: string | null;
-  is_active: boolean;
-  last_login: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Company {
-  id: string;
-  name: string;
-  subdomain: string;
-  subscription_plan: 'basic' | 'premium' | 'enterprise';
-  subscription_status: 'active' | 'inactive' | 'trial' | 'cancelled' | 'past_due';
-  settings: {
-    branding: {
-      primaryColor: string;
-      companyName: string;
-    };
-    features: {
-      aiAssistant: boolean;
-      advancedReporting: boolean;
-      multiUser: boolean;
-      maxUsers: number;
-    };
-  };
-}
+type Profile = Database['public']['Tables']['profiles']['Row'];
+type Company = Database['public']['Tables']['companies']['Row'];
 
 interface AuthUser {
   id: string;
@@ -82,8 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch user profile - using any cast to bypass type checking
-      const { data: profileData, error: profileError } = await (supabase as any)
+      // Fetch user profile
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
@@ -96,8 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!profileData) return;
 
-      // Fetch company data - using any cast to bypass type checking
-      const { data: companyData, error: companyError } = await (supabase as any)
+      // Fetch company data
+      const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
         .eq('id', profileData.company_id)
@@ -108,23 +77,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      setProfile(profileData as Profile);
-      setCompany(companyData as Company);
+      setProfile(profileData);
+      setCompany(companyData);
 
       // Create user object for backward compatibility
       const authUser: AuthUser = {
         id: profileData.id,
         email: profileData.email,
-        role: profileData.role,
+        role: profileData.role as 'owner' | 'admin' | 'manager' | 'salesperson',
         name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.email,
         company_id: profileData.company_id,
-        company: companyData as Company
+        company: companyData
       };
 
       setUser(authUser);
 
-      // Update last login - using any cast to bypass type checking
-      await (supabase as any)
+      // Update last login
+      await supabase
         .from('profiles')
         .update({ last_login: new Date().toISOString() })
         .eq('id', userId);
@@ -137,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         
         if (session?.user) {
@@ -210,7 +180,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               multiUser: true,
               maxUsers: 100
             }
-          }
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }
       };
       setUser(mockAdminUser);
