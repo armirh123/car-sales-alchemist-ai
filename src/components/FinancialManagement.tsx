@@ -25,64 +25,43 @@ import {
 
 const FinancialManagement = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [loanAmount, setLoanAmount] = useState("");
+  const [downPayment, setDownPayment] = useState("");
+  const [interestRate, setInterestRate] = useState("");
+  const [loanTerm, setLoanTerm] = useState("");
 
-  // Sample financial data
+  // Empty financial data - ready for real data
   const financialMetrics = {
-    totalRevenue: 847500,
-    totalProfit: 152350,
-    avgProfitMargin: 18.5,
-    pendingPayments: 45000,
-    monthlyTarget: 100000,
-    achievedTarget: 84750
+    totalRevenue: 0,
+    totalProfit: 0,
+    avgProfitMargin: 0,
+    pendingPayments: 0,
+    monthlyTarget: 0,
+    achievedTarget: 0
   };
 
-  const recentSales = [
-    {
-      id: "1",
-      vehicle: "2024 Toyota Camry",
-      customer: "John Smith",
-      salePrice: 28500,
-      cost: 24000,
-      profit: 4500,
-      profitMargin: 15.8,
-      paymentStatus: "paid",
-      saleDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      salesperson: "Sarah Johnson"
-    },
-    {
-      id: "2",
-      vehicle: "2023 Ford Escape",
-      customer: "Emily Davis",
-      salePrice: 32000,
-      cost: 27500,
-      profit: 4500,
-      profitMargin: 14.1,
-      paymentStatus: "pending",
-      saleDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      salesperson: "Mike Wilson"
-    },
-    {
-      id: "3",
-      vehicle: "2024 BMW X3",
-      customer: "Robert Brown",
-      salePrice: 45000,
-      cost: 38000,
-      profit: 7000,
-      profitMargin: 15.6,
-      paymentStatus: "paid",
-      saleDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      salesperson: "Lisa Chen"
-    }
-  ];
+  const recentSales: any[] = [];
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-orange-100 text-orange-800';
-      case 'overdue': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const calculateLoanPayment = () => {
+    const principal = parseFloat(loanAmount) - parseFloat(downPayment || "0");
+    const monthlyRate = parseFloat(interestRate) / 100 / 12;
+    const numPayments = parseInt(loanTerm);
+    
+    if (principal > 0 && monthlyRate > 0 && numPayments > 0) {
+      const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+      const totalInterest = (monthlyPayment * numPayments) - principal;
+      
+      return {
+        monthlyPayment: monthlyPayment.toFixed(2),
+        totalInterest: totalInterest.toFixed(2),
+        totalAmount: (principal + totalInterest).toFixed(2),
+        loanAmount: principal.toFixed(2)
+      };
     }
+    return null;
   };
+
+  const loanCalculation = calculateLoanPayment();
 
   return (
     <div className="space-y-6">
@@ -134,7 +113,7 @@ const FinancialManagement = () => {
               <CardContent>
                 <div className="text-2xl font-bold">${financialMetrics.totalRevenue.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  +12.5% from last month
+                  No sales recorded yet
                 </p>
               </CardContent>
             </Card>
@@ -160,7 +139,7 @@ const FinancialManagement = () => {
               <CardContent>
                 <div className="text-2xl font-bold">${financialMetrics.pendingPayments.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  3 outstanding invoices
+                  No outstanding invoices
                 </p>
               </CardContent>
             </Card>
@@ -171,11 +150,9 @@ const FinancialManagement = () => {
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {((financialMetrics.achievedTarget / financialMetrics.monthlyTarget) * 100).toFixed(1)}%
-                </div>
+                <div className="text-2xl font-bold">0%</div>
                 <p className="text-xs text-muted-foreground">
-                  ${financialMetrics.achievedTarget.toLocaleString()} of ${financialMetrics.monthlyTarget.toLocaleString()}
+                  Set your monthly target
                 </p>
               </CardContent>
             </Card>
@@ -188,35 +165,12 @@ const FinancialManagement = () => {
               <CardDescription>Vehicle category performance breakdown</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {[
-                  { category: "Luxury", margin: 22.5, sales: 15, revenue: 675000 },
-                  { category: "SUVs", margin: 18.2, sales: 28, revenue: 420000 },
-                  { category: "Sedans", margin: 15.8, sales: 35, revenue: 350000 },
-                  { category: "Electric", margin: 20.1, sales: 12, revenue: 480000 },
-                  { category: "Trucks", margin: 16.5, sales: 22, revenue: 550000 }
-                ].map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full" />
-                      <span className="font-medium">{item.category}</span>
-                    </div>
-                    <div className="flex items-center space-x-6 text-sm">
-                      <div className="text-right">
-                        <div className="font-medium">{item.margin}%</div>
-                        <div className="text-slate-500">Margin</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">{item.sales}</div>
-                        <div className="text-slate-500">Sales</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium">${item.revenue.toLocaleString()}</div>
-                        <div className="text-slate-500">Revenue</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-12">
+                <PieChart className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">No Sales Data Available</h3>
+                <p className="text-slate-500 text-sm">
+                  Profit margin analysis will appear here once you start recording sales.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -229,41 +183,12 @@ const FinancialManagement = () => {
               <CardDescription>Latest vehicle sales with profit analysis</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentSales.map((sale) => (
-                  <div key={sale.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">{sale.vehicle}</h4>
-                        <Badge className={getPaymentStatusColor(sale.paymentStatus)}>
-                          {sale.paymentStatus.toUpperCase()}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-slate-600">
-                        <div>
-                          <span className="font-medium">Customer:</span> {sale.customer}
-                        </div>
-                        <div>
-                          <span className="font-medium">Salesperson:</span> {sale.salesperson}
-                        </div>
-                        <div>
-                          <span className="font-medium">Sale Date:</span> {sale.saleDate.toLocaleDateString()}
-                        </div>
-                        <div>
-                          <span className="font-medium">Profit Margin:</span> {sale.profitMargin}%
-                        </div>
-                      </div>
-                    </div>
-                    <div className="ml-4 text-right">
-                      <div className="text-lg font-bold text-green-600">
-                        ${sale.salePrice.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-slate-600">
-                        Profit: ${sale.profit.toLocaleString()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-12">
+                <DollarSign className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">No Sales Recorded</h3>
+                <p className="text-slate-500 text-sm">
+                  Sales data will appear here once you start recording vehicle sales.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -280,19 +205,31 @@ const FinancialManagement = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium">Vehicle Price</label>
-                    <Input placeholder="35000" />
+                    <Input 
+                      placeholder="35000" 
+                      value={loanAmount}
+                      onChange={(e) => setLoanAmount(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Down Payment</label>
-                    <Input placeholder="5000" />
+                    <Input 
+                      placeholder="5000" 
+                      value={downPayment}
+                      onChange={(e) => setDownPayment(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Interest Rate (%)</label>
-                    <Input placeholder="3.5" />
+                    <Input 
+                      placeholder="3.5" 
+                      value={interestRate}
+                      onChange={(e) => setInterestRate(e.target.value)}
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Loan Term</label>
-                    <Select>
+                    <Select value={loanTerm} onValueChange={setLoanTerm}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select term" />
                       </SelectTrigger>
@@ -305,30 +242,34 @@ const FinancialManagement = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button className="w-full">
-                    Calculate Payment
-                  </Button>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-lg">
                   <h3 className="font-medium mb-4">Loan Summary</h3>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span>Loan Amount:</span>
-                      <span className="font-medium">$30,000</span>
+                  {loanCalculation ? (
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>Loan Amount:</span>
+                        <span className="font-medium">${loanCalculation.loanAmount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Monthly Payment:</span>
+                        <span className="font-medium">${loanCalculation.monthlyPayment}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total Interest:</span>
+                        <span className="font-medium">${loanCalculation.totalInterest}</span>
+                      </div>
+                      <div className="flex justify-between border-t pt-3 mt-3">
+                        <span className="font-medium">Total Amount:</span>
+                        <span className="font-bold">${loanCalculation.totalAmount}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Monthly Payment:</span>
-                      <span className="font-medium">$545.91</span>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Calculator className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                      <p className="text-sm text-slate-500">Enter loan details to calculate payments</p>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Total Interest:</span>
-                      <span className="font-medium">$2,757.02</span>
-                    </div>
-                    <div className="flex justify-between border-t pt-3 mt-3">
-                      <span className="font-medium">Total Amount:</span>
-                      <span className="font-bold">$32,757.02</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -342,35 +283,12 @@ const FinancialManagement = () => {
               <CardDescription>Track commission earnings by salesperson</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {[
-                  { name: "Sarah Johnson", sales: 8, revenue: 280000, commission: 8400 },
-                  { name: "Mike Wilson", sales: 6, revenue: 195000, commission: 5850 },
-                  { name: "Lisa Chen", sales: 7, revenue: 245000, commission: 7350 },
-                  { name: "David Rodriguez", sales: 5, revenue: 167000, commission: 5010 }
-                ].map((person, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-blue-600">
-                          {person.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{person.name}</h4>
-                        <p className="text-sm text-slate-600">{person.sales} sales this month</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-green-600">
-                        ${person.commission.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-slate-600">
-                        ${person.revenue.toLocaleString()} revenue
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="text-center py-12">
+                <Banknote className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">No Commission Data</h3>
+                <p className="text-slate-500 text-sm">
+                  Commission tracking will be available once sales are recorded and salespeople are assigned.
+                </p>
               </div>
             </CardContent>
           </Card>

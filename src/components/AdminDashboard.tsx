@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,28 +45,6 @@ const AdminDashboard = () => {
       </Card>
     );
   }
-
-  const systemStats = {
-    totalUsers: 12,
-    activeUsers: 8,
-    totalLeads: 287,
-    totalSales: 42,
-    systemUptime: "99.9%",
-    lastBackup: "2 hours ago"
-  };
-
-  const recentActivities = [
-    { type: "user_login", user: "John Smith", action: "Logged in", time: "5 minutes ago", icon: Users },
-    { type: "lead_created", user: "Sarah Johnson", action: "Created new lead", time: "12 minutes ago", icon: UserPlus },
-    { type: "sale_completed", user: "Mike Davis", action: "Completed sale", time: "1 hour ago", icon: CheckCircle },
-    { type: "system_alert", user: "System", action: "Backup completed", time: "2 hours ago", icon: Database }
-  ];
-
-  const pendingTasks = [
-    { id: 1, title: "Review monthly sales report", priority: "high", dueDate: "Today" },
-    { id: 2, title: "Update user permissions", priority: "medium", dueDate: "Tomorrow" },
-    { id: 3, title: "Configure automated backups", priority: "low", dueDate: "This week" }
-  ];
 
   const handleQuickAction = (action: string) => {
     toast({
@@ -128,8 +107,8 @@ const AdminDashboard = () => {
                       <Users className="h-4 w-4 text-blue-600" />
                       <span className="text-sm font-medium">Total Users</span>
                     </div>
-                    <div className="text-2xl font-bold mt-2">{systemStats.totalUsers}</div>
-                    <div className="text-xs text-green-600">+2 this month</div>
+                    <div className="text-2xl font-bold mt-2">0</div>
+                    <div className="text-xs text-slate-500">No users yet</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -138,8 +117,8 @@ const AdminDashboard = () => {
                       <Activity className="h-4 w-4 text-green-600" />
                       <span className="text-sm font-medium">Active Now</span>
                     </div>
-                    <div className="text-2xl font-bold mt-2">{systemStats.activeUsers}</div>
-                    <div className="text-xs text-slate-500">of {systemStats.totalUsers} users</div>
+                    <div className="text-2xl font-bold mt-2">0</div>
+                    <div className="text-xs text-slate-500">No active users</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -148,8 +127,8 @@ const AdminDashboard = () => {
                       <TrendingUp className="h-4 w-4 text-purple-600" />
                       <span className="text-sm font-medium">Uptime</span>
                     </div>
-                    <div className="text-2xl font-bold mt-2">{systemStats.systemUptime}</div>
-                    <div className="text-xs text-green-600">Excellent</div>
+                    <div className="text-2xl font-bold mt-2">100%</div>
+                    <div className="text-xs text-green-600">System Ready</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -158,8 +137,8 @@ const AdminDashboard = () => {
                       <Database className="h-4 w-4 text-orange-600" />
                       <span className="text-sm font-medium">Last Backup</span>
                     </div>
-                    <div className="text-sm font-bold mt-2">{systemStats.lastBackup}</div>
-                    <div className="text-xs text-green-600">Automated</div>
+                    <div className="text-sm font-bold mt-2">Not configured</div>
+                    <div className="text-xs text-slate-500">Setup required</div>
                   </CardContent>
                 </Card>
               </div>
@@ -170,20 +149,12 @@ const AdminDashboard = () => {
                   <CardDescription>Live activity feed from all users and system processes</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentActivities.map((activity, index) => {
-                      const Icon = activity.icon;
-                      return (
-                        <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg">
-                          <Icon className="h-5 w-5 text-slate-600" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{activity.user} {activity.action}</p>
-                            <p className="text-xs text-slate-500">{activity.time}</p>
-                          </div>
-                          <Badge variant="outline" className="text-xs">{activity.type.replace('_', ' ')}</Badge>
-                        </div>
-                      );
-                    })}
+                  <div className="text-center py-12">
+                    <Activity className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-slate-900 mb-2">No Activity Yet</h3>
+                    <p className="text-slate-500 text-sm">
+                      System activity will appear here as users interact with the platform.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -236,24 +207,14 @@ const AdminDashboard = () => {
                   <CardTitle>Pending Tasks</CardTitle>
                   <CardDescription>Administrative tasks requiring attention</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {pendingTasks.map((task) => (
-                    <div key={task.id} className="p-3 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">{task.title}</span>
-                        <Badge 
-                          variant={task.priority === 'high' ? 'destructive' : task.priority === 'medium' ? 'default' : 'secondary'}
-                          className="text-xs"
-                        >
-                          {task.priority}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-500">Due: {task.dueDate}</span>
-                        <Button size="sm" variant="ghost">Complete</Button>
-                      </div>
-                    </div>
-                  ))}
+                <CardContent>
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm text-slate-500">No pending tasks</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Administrative tasks will appear here when they require attention
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -271,13 +232,17 @@ const AdminDashboard = () => {
               <CardDescription>Manage user accounts, roles, and permissions</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-slate-600 mb-4">
-                User management functionality will be implemented with database integration.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button variant="outline">Add New User</Button>
-                <Button variant="outline">Bulk Import Users</Button>
-                <Button variant="outline">Export User List</Button>
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">No Users Yet</h3>
+                <p className="text-slate-500 text-sm mb-4">
+                  User management functionality will be available once users are added to the system.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline">Add New User</Button>
+                  <Button variant="outline">Bulk Import Users</Button>
+                  <Button variant="outline">Export User List</Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -327,11 +292,11 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Email Service</span>
-                    <Badge className="bg-green-100 text-green-800">Active</Badge>
+                    <Badge className="bg-yellow-100 text-yellow-800">Not Configured</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Backup Service</span>
-                    <Badge className="bg-green-100 text-green-800">Running</Badge>
+                    <Badge className="bg-yellow-100 text-yellow-800">Not Configured</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -356,7 +321,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className="flex items-center space-x-2 p-2 border rounded">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">All systems up to date</span>
+                      <span className="text-sm">System ready for deployment</span>
                     </div>
                   </div>
                 </div>
@@ -380,32 +345,20 @@ const AdminDashboard = () => {
               <CardDescription>Configure automated processes and notifications</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-medium">Active Automations</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border rounded">
-                      <div>
-                        <p className="text-sm font-medium">Daily Sales Report</p>
-                        <p className="text-xs text-slate-500">Runs every day at 9 AM</p>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
+              <div className="text-center py-12">
+                <Bell className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 mb-2">No Automations Configured</h3>
+                <p className="text-slate-500 text-sm mb-4">
+                  Set up automated workflows to streamline your business processes.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Quick Setup</h4>
+                    <div className="space-y-2">
+                      <Button variant="outline" size="sm">Setup Email Automation</Button>
+                      <Button variant="outline" size="sm">Configure Report Scheduling</Button>
+                      <Button variant="outline" size="sm">Create Custom Workflow</Button>
                     </div>
-                    <div className="flex items-center justify-between p-3 border rounded">
-                      <div>
-                        <p className="text-sm font-medium">Lead Follow-up Reminders</p>
-                        <p className="text-xs text-slate-500">Triggers after 24 hours</p>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <h4 className="font-medium">Quick Setup</h4>
-                  <div className="space-y-2">
-                    <Button variant="outline" size="sm">Setup Email Automation</Button>
-                    <Button variant="outline" size="sm">Configure Report Scheduling</Button>
-                    <Button variant="outline" size="sm">Create Custom Workflow</Button>
                   </div>
                 </div>
               </div>

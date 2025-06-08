@@ -42,63 +42,8 @@ const CustomerManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("lastContact");
 
-  // Sample customer data
-  const [customers] = useState<Customer[]>([
-    {
-      id: "1",
-      firstName: "John",
-      lastName: "Smith",
-      email: "john.smith@email.com",
-      phone: "(555) 123-4567",
-      status: "hot",
-      source: "Website",
-      assignedTo: "Sarah Johnson",
-      interestLevel: "high",
-      preferredContact: "phone",
-      budget: 35000,
-      interestedVehicles: ["2024 Toyota Camry", "2023 Honda Accord"],
-      lastContact: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      nextFollowUp: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      notes: "Very interested in hybrid vehicles. Prefers silver or white color.",
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: "2",
-      firstName: "Emily",
-      lastName: "Davis",
-      email: "emily.davis@email.com",
-      phone: "(555) 987-6543",
-      status: "negotiating",
-      source: "Referral",
-      assignedTo: "Mike Wilson",
-      interestLevel: "high",
-      preferredContact: "email",
-      budget: 28000,
-      interestedVehicles: ["2023 Ford Escape"],
-      lastContact: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      nextFollowUp: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      notes: "Ready to buy, comparing financing options.",
-      createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: "3",
-      firstName: "Robert",
-      lastName: "Brown",
-      email: "robert.brown@email.com",
-      phone: "(555) 456-7890",
-      status: "lead",
-      source: "Walk-in",
-      assignedTo: "Lisa Chen",
-      interestLevel: "medium",
-      preferredContact: "phone",
-      budget: 45000,
-      interestedVehicles: ["2024 BMW X3", "2023 Audi Q5"],
-      lastContact: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      nextFollowUp: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      notes: "Looking for luxury SUV. Test drive scheduled for next week.",
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
-    }
-  ]);
+  // Empty customer data - ready for real data
+  const [customers] = useState<Customer[]>([]);
 
   const handleAddCustomer = (customer: Customer) => {
     console.log("Adding customer:", customer);
@@ -127,27 +72,6 @@ const CustomerManagement = () => {
       }
     });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'prospect': return 'bg-gray-100 text-gray-800';
-      case 'lead': return 'bg-blue-100 text-blue-800';
-      case 'hot': return 'bg-red-100 text-red-800';
-      case 'negotiating': return 'bg-orange-100 text-orange-800';
-      case 'sold': return 'bg-green-100 text-green-800';
-      case 'lost': return 'bg-slate-100 text-slate-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getInterestLevelColor = (level: string) => {
-    switch (level) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const getOverdueCustomers = () => {
     return customers.filter(customer => 
       customer.nextFollowUp < new Date() && 
@@ -164,7 +88,7 @@ const CustomerManagement = () => {
           <p className="text-slate-600">{filteredCustomers.length} customers in your database</p>
         </div>
         <div className="flex space-x-2">
-          <Badge variant="destructive" className="text-sm">
+          <Badge variant="outline" className="text-sm">
             {getOverdueCustomers().length} overdue follow-ups
           </Badge>
           <AddCustomerDialog onAddCustomer={handleAddCustomer} />
@@ -224,80 +148,15 @@ const CustomerManagement = () => {
             </Select>
           </div>
 
-          {/* Customer Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCustomers.map((customer) => (
-              <Card key={customer.id} className="hover:shadow-lg transition-shadow duration-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">
-                      {customer.firstName} {customer.lastName}
-                    </CardTitle>
-                    <Badge className={getStatusColor(customer.status)}>
-                      {customer.status.toUpperCase()}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className={getInterestLevelColor(customer.interestLevel)}>
-                      {customer.interestLevel} interest
-                    </Badge>
-                    <span className="text-sm text-slate-500">
-                      ${customer.budget.toLocaleString()} budget
-                    </span>
-                  </div>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <Mail className="h-4 w-4 text-slate-400" />
-                      <span className="text-slate-600">{customer.email}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-slate-400" />
-                      <span className="text-slate-600">{customer.phone}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Car className="h-4 w-4 text-slate-400" />
-                      <span className="text-slate-600">
-                        {customer.interestedVehicles.length} vehicles of interest
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-4 w-4 text-slate-400" />
-                      <span className={`text-sm ${customer.nextFollowUp < new Date() ? 'text-red-600 font-medium' : 'text-slate-600'}`}>
-                        Follow-up: {customer.nextFollowUp.toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-500 mt-2">
-                      Assigned to: {customer.assignedTo}
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 flex space-x-2">
-                    <CustomerDetailsDialog customer={customer}>
-                      <Button size="sm" className="flex-1">
-                        View Details
-                      </Button>
-                    </CustomerDetailsDialog>
-                    <Button size="sm" variant="outline" className="flex-1">
-                      Contact
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          {/* Customer Grid - Empty State */}
+          <div className="text-center py-12">
+            <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-slate-900 mb-2">No Customers Yet</h3>
+            <p className="text-slate-600 mb-4">
+              Start building your customer database by adding your first customer.
+            </p>
+            <AddCustomerDialog onAddCustomer={handleAddCustomer} />
           </div>
-
-          {filteredCustomers.length === 0 && (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No customers found</h3>
-              <p className="text-slate-600">
-                No customers match your current search and filter criteria.
-              </p>
-            </div>
-          )}
         </TabsContent>
 
         <TabsContent value="pipeline">

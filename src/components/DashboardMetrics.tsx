@@ -14,45 +14,30 @@ const DashboardMetrics = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  // Sample employee data - in real app this would come from database
-  const [employeeData] = useState([
-    { id: 1, name: "John Smith", leadsGenerated: 45, salesClosed: 12 },
-    { id: 2, name: "Sarah Johnson", leadsGenerated: 38, salesClosed: 9 },
-    { id: 3, name: "Mike Davis", leadsGenerated: 42, salesClosed: 10 },
-    { id: 4, name: "Lisa Chen", leadsGenerated: 23, salesClosed: 5 },
-    { id: 5, name: "Tom Wilson", leadsGenerated: 31, salesClosed: 6 },
-    { id: 6, name: "Emma Brown", leadsGenerated: 28, salesClosed: 8 }
-  ]);
+  // Empty employee data - ready for real data
+  const [employeeData] = useState([]);
 
-  // Calculate metrics based on employee data
+  // Calculate metrics based on employee data (all zeros for empty data)
   const calculatedMetrics = useMemo(() => {
-    const totalLeads = employeeData.reduce((sum, emp) => sum + emp.leadsGenerated, 0);
-    const totalSales = employeeData.reduce((sum, emp) => sum + emp.salesClosed, 0);
-    const overallConversionRate = totalLeads > 0 ? (totalSales / totalLeads * 100).toFixed(1) : "0.0";
-    
-    // Calculate average sales value (mock calculation)
-    const avgSaleValue = 45000; // Average car sale value
-    const totalSalesValue = totalSales * avgSaleValue;
-    
     return {
       totalSales: {
-        value: isAdmin ? `$${(totalSalesValue / 1000000).toFixed(1)}M` : "$***",
-        change: isAdmin ? "+12.5%" : "***",
+        value: isAdmin ? "$0" : "$***",
+        change: isAdmin ? "No data" : "***",
         trend: "up" as const
       },
       activeLeads: {
-        value: isAdmin ? totalLeads.toString() : "***",
-        change: isAdmin ? "+8.2%" : "***", 
+        value: isAdmin ? "0" : "***",
+        change: isAdmin ? "No data" : "***", 
         trend: "up" as const
       },
       carsSold: {
-        value: isAdmin ? totalSales.toString() : "***",
-        change: isAdmin ? "-2.1%" : "***",
-        trend: "down" as const
+        value: isAdmin ? "0" : "***",
+        change: isAdmin ? "No data" : "***",
+        trend: "up" as const
       },
       conversionRate: {
-        value: isAdmin ? `${overallConversionRate}%` : "***",
-        change: isAdmin ? "+5.3%" : "***",
+        value: isAdmin ? "0%" : "***",
+        change: isAdmin ? "No data" : "***",
         trend: "up" as const
       }
     };
@@ -126,7 +111,6 @@ const DashboardMetrics = () => {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // In real app, this would fetch fresh data from database
     setIsRefreshing(false);
     
     toast({
@@ -148,14 +132,7 @@ const DashboardMetrics = () => {
         <CardContent>
           <div className="text-2xl font-bold text-slate-900">{metric.value}</div>
           <div className="flex items-center space-x-2 mt-1">
-            <div className={`flex items-center space-x-1 text-sm ${
-              metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {metric.trend === 'up' ? (
-                <TrendingUp className="h-3 w-3" />
-              ) : (
-                <TrendingDown className="h-3 w-3" />
-              )}
+            <div className="flex items-center space-x-1 text-sm text-slate-500">
               <span>{metric.change}</span>
             </div>
             <span className="text-slate-500 text-sm">{metric.description}</span>
@@ -253,27 +230,13 @@ const DashboardMetrics = () => {
               <CardTitle>Recent Admin Actions</CardTitle>
               <CardDescription>Latest administrative activities</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Data updated by Admin</p>
-                  <p className="text-xs text-slate-500">2 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">New user account created</p>
-                  <p className="text-xs text-slate-500">4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">System configuration changed</p>
-                  <p className="text-xs text-slate-500">6 hours ago</p>
-                </div>
+            <CardContent>
+              <div className="text-center py-8">
+                <Settings className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500">No admin actions yet</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Administrative activities will appear here
+                </p>
               </div>
             </CardContent>
           </Card>
