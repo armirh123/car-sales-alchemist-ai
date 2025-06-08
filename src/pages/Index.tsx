@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,25 +46,25 @@ const Index = () => {
     {
       key: 'h',
       ctrlKey: true,
-      callback: () => setActiveView('dashboard'),
+      callback: () => setActiveTab('dashboard'),
       description: 'Go to Dashboard'
     },
     {
       key: 'i',
       ctrlKey: true, 
-      callback: () => setActiveView('inventory'),
+      callback: () => setActiveTab('inventory'),
       description: 'Go to Inventory'
     },
     {
       key: 'c',
       ctrlKey: true,
-      callback: () => setActiveView('customers'),
+      callback: () => setActiveTab('customers'),
       description: 'Go to Customers'
     },
     {
       key: 'l',
       ctrlKey: true,
-      callback: () => setActiveView('leads'),
+      callback: () => setActiveTab('leads'),
       description: 'Go to Leads'
     }
   ]);
