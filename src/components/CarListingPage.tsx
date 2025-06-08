@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Search, Filter, Car } from "lucide-react";
+import { ArrowLeft, Search, Filter, Car, RefreshCw } from "lucide-react";
+import ManageStockDialog from "./ManageStockDialog";
 
 interface Car {
   id: string;
@@ -31,12 +31,21 @@ interface CarListingPageProps {
   category: string;
   cars: Car[];
   onBack: () => void;
+  onAddCar: (car: Car) => void;
 }
 
-const CarListingPage = ({ category, cars, onBack }: CarListingPageProps) => {
+const CarListingPage = ({ category, cars, onBack, onAddCar }: CarListingPageProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("price-low");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsRefreshing(false);
+  };
 
   const filteredCars = cars
     .filter(car => car.category === category)
@@ -73,7 +82,6 @@ const CarListingPage = ({ category, cars, onBack }: CarListingPageProps) => {
   };
 
   const getDefaultImage = (make: string) => {
-    // Return a placeholder or default car image based on make
     return `https://images.unsplash.com/photo-1494905998402-395d579af36f?w=400&h=300&fit=crop&crop=center`;
   };
 
@@ -89,6 +97,17 @@ const CarListingPage = ({ category, cars, onBack }: CarListingPageProps) => {
             <h2 className="text-2xl font-bold text-slate-900">{category} Inventory</h2>
             <p className="text-slate-600">{filteredCars.length} vehicles available</p>
           </div>
+        </div>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+          </Button>
+          <ManageStockDialog onAddCar={onAddCar} />
         </div>
       </div>
 

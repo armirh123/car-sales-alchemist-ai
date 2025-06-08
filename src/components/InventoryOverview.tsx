@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Car, TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
+import { Car, TrendingUp, TrendingDown, AlertCircle, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import ManageStockDialog from "./ManageStockDialog";
 import CarListingPage from "./CarListingPage";
 import CategoryActions from "./CategoryActions";
 import AddCategoryDialog from "./AddCategoryDialog";
+import { MarketDataService, type MarketData } from "../services/marketDataService";
 
 interface Car {
   id: string;
@@ -102,6 +102,48 @@ const InventoryOverview = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>(["Sedans", "SUVs", "Electric", "Trucks", "Luxury", "Sports"]);
+  const [marketData, setMarketData] = useState<MarketData | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const marketService = MarketDataService.getInstance();
+
+  useEffect(() => {
+    // Load initial market data
+    loadMarketData();
+  }, []);
+
+  const loadMarketData = async () => {
+    try {
+      const data = await marketService.fetchMarketData();
+      setMarketData(data);
+    } catch (error) {
+      console.error('Failed to load market data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load market data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      await loadMarketData();
+      toast({
+        title: "Data Refreshed",
+        description: "Market insights and stock alerts have been updated with the latest data.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to refresh market data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleAddCar = (newCar: Car) => {
     setCars(prev => [...prev, newCar]);
@@ -204,6 +246,7 @@ const InventoryOverview = () => {
         category={selectedCategory}
         cars={cars}
         onBack={handleBackToInventory}
+        onAddCar={handleAddCar}
       />
     );
   }
@@ -223,19 +266,51 @@ const InventoryOverview = () => {
       <TrendingDown className="h-4 w-4 text-red-600" />;
   };
 
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'border-red-500';
+      case 'warning': return 'border-orange-500';
+      case 'info': return 'border-blue-500';
+      default: return 'border-gray-500';
+    }
+  };
+
+  const getInsightColor = (type: string) => {
+    switch (type) {
+      case 'opportunity': return 'bg-blue-50';
+      case 'growth': return 'bg-green-50';
+      case 'optimization': return 'bg-orange-50';
+      case 'warning': return 'bg-red-50';
+      default: return 'bg-gray-50';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-slate-900">Inventory Overview</h2>
         <div className="flex space-x-2">
           <AddCategoryDialog onAddCategory={handleAddCategory} />
-          <ManageStockDialog onAddCar={handleAddCar} />
+          <Button 
+            variant="outline"
+            onClick={handleRefreshData}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+          </Button>
           <Button className="bg-blue-600 hover:bg-blue-700">
             <AlertCircle className="h-4 w-4 mr-2" />
             Stock Alerts
           </Button>
         </div>
       </div>
+
+      {marketData?.lastUpdated && (
+        <div className="text-sm text-slate-500">
+          Last updated: {marketData.lastUpdated.toLocaleTimeString()}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {inventoryCategories.map((category, index) => (
@@ -285,54 +360,66 @@ const InventoryOverview = () => {
         <Card>
           <CardHeader>
             <CardTitle>Stock Alerts</CardTitle>
-            <CardDescription>Items requiring attention</CardDescription>
+            <CardDescription>Real-time inventory notifications</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="border-l-4 border-red-500 pl-4">
-              <p className="font-medium text-slate-900">Critical Stock: Luxury Vehicles</p>
-              <p className="text-sm text-slate-600">
-                Only 12 units remaining. High demand from premium dealerships expected.
-              </p>
-            </div>
-            <div className="border-l-4 border-orange-500 pl-4">
-              <p className="font-medium text-slate-900">Low Stock: SUVs</p>
-              <p className="text-sm text-slate-600">
-                SUV inventory down 23%. Consider restocking for seasonal demand.
-              </p>
-            </div>
-            <div className="border-l-4 border-blue-500 pl-4">
-              <p className="font-medium text-slate-900">High Demand: Electric Vehicles</p>
-              <p className="text-sm text-slate-600">
-                Electric vehicle interest up 45%. Opportunity to expand inventory.
-              </p>
-            </div>
+            {marketData?.alerts.map((alert) => (
+              <div key={alert.id} className={`border-l-4 ${getSeverityColor(alert.severity)} pl-4`}>
+                <p className="font-medium text-slate-900">{alert.title}</p>
+                <p className="text-sm text-slate-600">{alert.description}</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  {alert.count && (
+                    <span className="text-xs bg-slate-100 px-2 py-1 rounded">
+                      {alert.count} units
+                    </span>
+                  )}
+                  {alert.percentage && (
+                    <span className="text-xs bg-slate-100 px-2 py-1 rounded">
+                      {alert.percentage}
+                    </span>
+                  )}
+                  <span className="text-xs text-slate-400">
+                    {alert.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+              </div>
+            )) || (
+              <p className="text-slate-500">Loading alerts...</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Market Insights</CardTitle>
-            <CardDescription>AI-powered inventory recommendations</CardDescription>
+            <CardDescription>AI-powered real-time market analysis</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-slate-900 mb-2">Seasonal Opportunity</h4>
-              <p className="text-sm text-slate-600">
-                Winter is approaching. Recommend increasing SUV and truck inventory by 20% for Q4 demand.
-              </p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h4 className="font-medium text-slate-900 mb-2">EV Market Growth</h4>
-              <p className="text-sm text-slate-600">
-                Electric vehicle market growing 45% year-over-year. Consider strategic partnerships with EV manufacturers.
-              </p>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <h4 className="font-medium text-slate-900 mb-2">Price Optimization</h4>
-              <p className="text-sm text-slate-600">
-                Luxury vehicle prices can be optimized 8-12% higher based on current market conditions.
-              </p>
-            </div>
+            {marketData?.insights.map((insight) => (
+              <div key={insight.id} className={`${getInsightColor(insight.type)} p-4 rounded-lg`}>
+                <h4 className="font-medium text-slate-900 mb-2">{insight.title}</h4>
+                <p className="text-sm text-slate-600 mb-2">{insight.description}</p>
+                <div className="flex items-center space-x-2">
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    insight.impact === 'high' ? 'bg-red-100 text-red-800' :
+                    insight.impact === 'medium' ? 'bg-orange-100 text-orange-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {insight.impact.toUpperCase()} IMPACT
+                  </span>
+                  {insight.percentage && (
+                    <span className="text-xs bg-white px-2 py-1 rounded border">
+                      {insight.percentage}
+                    </span>
+                  )}
+                  <span className="text-xs text-slate-400">
+                    {insight.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+              </div>
+            )) || (
+              <p className="text-slate-500">Loading insights...</p>
+            )}
           </CardContent>
         </Card>
       </div>
