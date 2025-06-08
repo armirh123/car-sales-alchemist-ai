@@ -25,26 +25,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { login, adminLogin: adminLoginAction, signUp, logout: authLogout } = useAuthActions();
 
   const handleUserData = async (userId: string) => {
-    const userData = await fetchUserData(userId);
-    if (userData) {
-      setUser(userData);
+    console.log('handleUserData called for:', userId);
+    setIsLoading(true);
+    
+    try {
+      const userData = await fetchUserData(userId);
+      if (userData) {
+        console.log('Setting user data:', userData.email);
+        setUser(userData);
+      } else {
+        console.warn('No user data returned');
+        // Don't clear the user state immediately, let the auth state change handle it
+      }
+    } catch (error) {
+      console.error('Error in handleUserData:', error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleAdminLogin = async (username: string, password: string): Promise<boolean> => {
     console.log('AuthContext: handleAdminLogin called with:', username);
-    const result = await adminLoginAction(username, password);
-    console.log('AuthContext: adminLoginAction result:', result);
+    setIsLoading(true);
     
-    if (result.success && result.user) {
-      console.log('AuthContext: Setting admin user:', result.user);
-      setUser(result.user);
+    try {
+      const result = await adminLoginAction(username, password);
+      console.log('AuthContext: adminLoginAction result:', result);
+      
+      if (result.success && result.user) {
+        console.log('AuthContext: Setting admin user:', result.user);
+        setUser(result.user);
+        setIsLoading(false);
+        return true;
+      }
+      console.log('AuthContext: Admin login failed');
       setIsLoading(false);
-      return true;
+      return false;
+    } catch (error) {
+      console.error('Error in handleAdminLogin:', error);
+      setIsLoading(false);
+      return false;
     }
-    console.log('AuthContext: Admin login failed');
-    return false;
   };
 
   const handleLogout = async (): Promise<void> => {
@@ -76,10 +97,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         
         if (session?.user) {
-          handleUserData(session.user.id);
+          // Only fetch user data for regular auth users, not admin users
+          if (!user?.isAdminUser) {
+            handleUserData(session.user.id);
+          }
         } else {
           // Only clear user state if it's not an admin user
           if (!user?.isAdminUser) {
+            console.log('No session, clearing user state');
             clearUserState();
             setUser(null);
           }
@@ -98,6 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       if (session?.user) {
         handleUserData(session.user.id);
@@ -110,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Remove user dependency to avoid infinite loops
 
   const value: AuthContextType = {
     user,
