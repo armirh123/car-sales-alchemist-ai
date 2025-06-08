@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +44,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, isToday, isTomorrow, isThisWeek, addDays, startOfWeek, endOfWeek } from "date-fns";
+import UpcomingAppointmentsPopup from "./UpcomingAppointmentsPopup";
 
 interface Appointment {
   id: string;
@@ -241,6 +241,8 @@ const UserCalendar = () => {
 
   return (
     <div className="space-y-6">
+      <UpcomingAppointmentsPopup appointments={appointments} />
+      
       {/* Header with Actions */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
         <div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,11 +20,41 @@ import UserCalendar from "@/components/UserCalendar";
 import UserNotifications from "@/components/UserNotifications";
 import ReportingCenter from "@/components/ReportingCenter";
 import InventoryIQLogo from "@/components/InventoryIQLogo";
+import UpcomingAppointmentsPopup from "@/components/UpcomingAppointmentsPopup";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("inventory");
   const { user, isLoading } = useAuth();
   const { tenant } = useTenant();
+
+  // Sample appointments data for the popup (in real app, this would come from a context or API)
+  const sampleAppointments = [
+    {
+      id: "1",
+      title: "Test Drive - Honda Civic",
+      description: "Customer interested in 2024 Honda Civic Sport",
+      date: new Date(),
+      time: "10:00 AM",
+      type: "test_drive" as const,
+      client: "John Smith",
+      phone: "(555) 123-4567",
+      location: "Main Lot",
+      status: "scheduled" as const,
+      priority: "high" as const
+    },
+    {
+      id: "2",
+      title: "Follow-up Call - Sarah Johnson",
+      description: "Discussing financing options",
+      date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
+      time: "2:00 PM",
+      type: "follow_up" as const,
+      client: "Sarah Johnson",
+      phone: "(555) 987-6543",
+      status: "scheduled" as const,
+      priority: "medium" as const
+    }
+  ];
 
   if (isLoading) {
     return (
@@ -123,6 +152,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {user && <UpcomingAppointmentsPopup appointments={sampleAppointments} />}
+      
       {/* Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
