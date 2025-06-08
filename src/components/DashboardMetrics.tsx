@@ -7,6 +7,8 @@ import { TrendingUp, TrendingDown, DollarSign, Users, Car, Target, RefreshCw, Pl
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import SalesDetailsDialog from "./SalesDetailsDialog";
+import AddDataDialog from "./AddDataDialog";
+import ManageSystemDialog from "./ManageSystemDialog";
 
 const DashboardMetrics = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -161,22 +163,26 @@ const DashboardMetrics = () => {
         <div className="flex items-center space-x-2">
           {isAdmin && (
             <>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-green-600 border-green-200"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Data
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-purple-600 border-purple-200"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Manage
-              </Button>
+              <AddDataDialog>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-green-600 border-green-200"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Data
+                </Button>
+              </AddDataDialog>
+              <ManageSystemDialog>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-purple-600 border-purple-200"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Manage
+                </Button>
+              </ManageSystemDialog>
             </>
           )}
           <Button 

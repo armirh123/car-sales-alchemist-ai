@@ -15,6 +15,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart3, Download, FileText, TrendingUp, Users, Car, DollarSign, Calendar as CalendarIcon, Filter } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 const ReportingCenter = () => {
   const [dateRange, setDateRange] = useState({
@@ -23,15 +24,106 @@ const ReportingCenter = () => {
   });
   const [reportType, setReportType] = useState("sales");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const { toast } = useToast();
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
+    setIsGenerating(true);
     console.log(`Generating ${reportType} report for period:`, dateRange);
-    // Report generation logic will be implemented when real data is available
+    
+    // Simulate report generation
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setIsGenerating(false);
+    toast({
+      title: "Report Generated",
+      description: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report has been generated successfully.`,
+    });
   };
 
-  const handleExportReport = (format: string) => {
+  const handleExportReport = async (format: string) => {
+    setIsExporting(true);
     console.log(`Exporting report as ${format}`);
-    // Export logic will be implemented when real data is available
+    
+    // Simulate export process
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Create a mock file download
+    const reportData = generateMockReportData();
+    downloadReport(reportData, format);
+    
+    setIsExporting(false);
+    toast({
+      title: "Export Complete",
+      description: `Report has been exported as ${format.toUpperCase()}.`,
+    });
+  };
+
+  const generateMockReportData = () => {
+    const reportData = {
+      reportType,
+      dateRange: {
+        from: format(dateRange.from, "yyyy-MM-dd"),
+        to: format(dateRange.to, "yyyy-MM-dd")
+      },
+      generatedAt: new Date().toISOString(),
+      data: {
+        summary: {
+          totalRecords: 0,
+          totalValue: 0,
+          averageValue: 0
+        },
+        details: "No data available - System ready for real data input"
+      }
+    };
+    return reportData;
+  };
+
+  const downloadReport = (data: any, format: string) => {
+    let content: string;
+    let mimeType: string;
+    let extension: string;
+
+    if (format === 'pdf') {
+      // For PDF, we'll create a simple text representation
+      content = `Report: ${data.reportType}\nDate Range: ${data.dateRange.from} to ${data.dateRange.to}\nGenerated: ${data.generatedAt}\n\nSummary:\nTotal Records: ${data.data.summary.totalRecords}\nTotal Value: $${data.data.summary.totalValue}\nAverage Value: $${data.data.summary.averageValue}\n\nDetails:\n${data.data.details}`;
+      mimeType = 'text/plain';
+      extension = 'txt'; // Using txt instead of pdf for simplicity
+    } else if (format === 'excel') {
+      // Create CSV format for Excel compatibility
+      content = `Report Type,${data.reportType}\nDate From,${data.dateRange.from}\nDate To,${data.dateRange.to}\nGenerated At,${data.generatedAt}\n\nSummary\nTotal Records,${data.data.summary.totalRecords}\nTotal Value,${data.data.summary.totalValue}\nAverage Value,${data.data.summary.averageValue}\n\nDetails\n${data.data.details}`;
+      mimeType = 'text/csv';
+      extension = 'csv';
+    } else {
+      // JSON format
+      content = JSON.stringify(data, null, 2);
+      mimeType = 'application/json';
+      extension = 'json';
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${data.reportType}_report_${format}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleQuickReport = async (type: string) => {
+    setIsGenerating(true);
+    console.log(`Generating quick ${type} report`);
+    
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setIsGenerating(false);
+    toast({
+      title: "Quick Report Generated",
+      description: `${type} report has been generated successfully.`,
+    });
   };
 
   return (
@@ -105,17 +197,56 @@ const ReportingCenter = () => {
             <div className="space-y-2">
               <label className="text-sm font-medium">Actions</label>
               <div className="flex space-x-2">
-                <Button onClick={handleGenerateReport} className="flex-1">
-                  Generate Report
-                </Button>
                 <Button 
-                  variant="outline" 
-                  onClick={() => handleExportReport('pdf')}
-                  className="flex items-center space-x-1"
+                  onClick={handleGenerateReport} 
+                  className="flex-1"
+                  disabled={isGenerating}
                 >
-                  <Download className="h-4 w-4" />
-                  <span>Export</span>
+                  {isGenerating ? "Generating..." : "Generate Report"}
                 </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      disabled={isExporting}
+                      className="flex items-center space-x-1"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>{isExporting ? "Exporting..." : "Export"}</span>
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48">
+                    <div className="space-y-2">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start"
+                        onClick={() => handleExportReport('pdf')}
+                        disabled={isExporting}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Export as PDF
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start"
+                        onClick={() => handleExportReport('excel')}
+                        disabled={isExporting}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Export as Excel
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start"
+                        onClick={() => handleExportReport('json')}
+                        disabled={isExporting}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Export as JSON
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </div>
@@ -190,9 +321,15 @@ const ReportingCenter = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => handleQuickReport('Sales Performance')}
+                  disabled={isGenerating}
+                >
                   <FileText className="h-4 w-4 mr-2" />
-                  Generate Report
+                  {isGenerating ? "Generating..." : "Generate Report"}
                 </Button>
               </CardContent>
             </Card>
@@ -208,9 +345,15 @@ const ReportingCenter = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => handleQuickReport('Inventory Analysis')}
+                  disabled={isGenerating}
+                >
                   <FileText className="h-4 w-4 mr-2" />
-                  Generate Report
+                  {isGenerating ? "Generating..." : "Generate Report"}
                 </Button>
               </CardContent>
             </Card>
@@ -226,9 +369,15 @@ const ReportingCenter = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => handleQuickReport('Customer Insights')}
+                  disabled={isGenerating}
+                >
                   <FileText className="h-4 w-4 mr-2" />
-                  Generate Report
+                  {isGenerating ? "Generating..." : "Generate Report"}
                 </Button>
               </CardContent>
             </Card>
