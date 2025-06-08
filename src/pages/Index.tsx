@@ -232,15 +232,11 @@ const Index = () => {
                 </TabsTrigger>
               </TabsList>
             ) : (
-              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-5">
+              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-4">
                 <TabsTrigger value="inventory" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <Car className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Inventory</span>
                   <span className="xs:hidden">Cars</span>
-                </TabsTrigger>
-                <TabsTrigger value="leads" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>Leads</span>
                 </TabsTrigger>
                 <TabsTrigger value="calendar" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -291,10 +287,12 @@ const Index = () => {
             </TabsContent>
           )}
 
-          {/* Common tabs for all authenticated users */}
-          <TabsContent value="leads">
-            <LeadManagement />
-          </TabsContent>
+          {/* Common tabs for admin and manager users */}
+          {(isAdmin || isManager) && (
+            <TabsContent value="leads">
+              <LeadManagement />
+            </TabsContent>
+          )}
 
           <TabsContent value="inventory">
             <InventoryOverview />
