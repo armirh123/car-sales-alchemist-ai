@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Search, Filter, Car, RefreshCw } from "lucide-react";
 import ManageStockDialog from "./ManageStockDialog";
+import CarDetailsDialog from "./CarDetailsDialog";
 
 interface Car {
   id: string;
@@ -199,9 +200,11 @@ const CarListingPage = ({ category, cars, onBack, onAddCar }: CarListingPageProp
               </div>
               
               <div className="mt-4 flex space-x-2">
-                <Button size="sm" className="flex-1">
-                  View Details
-                </Button>
+                <CarDetailsDialog car={car}>
+                  <Button size="sm" className="flex-1">
+                    View Details
+                  </Button>
+                </CarDetailsDialog>
                 <Button size="sm" variant="outline" className="flex-1">
                   Reserve
                 </Button>
