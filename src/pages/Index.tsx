@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import AdminDashboard from "@/components/AdminDashboard";
 import UserCalendar from "@/components/UserCalendar";
 import UserNotifications from "@/components/UserNotifications";
 import ReportingCenter from "@/components/ReportingCenter";
+import InventoryIQLogo from "@/components/InventoryIQLogo";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("inventory");
@@ -29,9 +31,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="bg-blue-600 p-4 rounded-lg inline-block mb-4">
-            <Car className="h-8 w-8 text-white animate-pulse" />
-          </div>
+          <InventoryIQLogo size="lg" className="mb-4 justify-center" />
           <h2 className="text-xl font-semibold text-slate-900">Loading {tenant.branding.companyName}...</h2>
         </div>
       </div>
@@ -46,9 +46,7 @@ const Index = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-lg" style={{ backgroundColor: tenant.branding.primaryColor }}>
-                  <Car className="h-6 w-6 text-white" />
-                </div>
+                <InventoryIQLogo size="md" showText={false} />
                 <div className="hidden sm:block">
                   <h1 className="text-xl font-bold text-slate-900">{tenant.branding.companyName}</h1>
                   <p className="text-sm text-slate-600">Intelligent Sales Management</p>
@@ -69,6 +67,7 @@ const Index = () => {
         {/* Welcome Content */}
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
           <div className="text-center">
+            <InventoryIQLogo size="lg" className="mb-8 justify-center" />
             <h2 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-4">
               Welcome to {tenant.branding.companyName}
             </h2>
@@ -129,9 +128,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-lg" style={{ backgroundColor: tenant.branding.primaryColor }}>
-                <Car className="h-6 w-6 text-white" />
-              </div>
+              <InventoryIQLogo size="md" showText={false} />
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold text-slate-900">{tenant.branding.companyName}</h1>
                 <p className="text-sm text-slate-600">Intelligent Sales Management</p>

@@ -97,8 +97,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Default fallback settings
   const defaultTenant = {
     branding: {
-      primaryColor: '#2563eb',
-      companyName: 'AutoSales AI'
+      primaryColor: '#6366f1',
+      companyName: 'InventoryIQ'
     },
     features: {
       aiAssistant: true,
