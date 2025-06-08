@@ -18,6 +18,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import AdminDashboard from "@/components/AdminDashboard";
 import UserCalendar from "@/components/UserCalendar";
 import UserNotifications from "@/components/UserNotifications";
+import ReportingCenter from "@/components/ReportingCenter";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("inventory");
@@ -270,15 +271,7 @@ const Index = () => {
                 <AdminDashboard />
               </TabsContent>
               <TabsContent value="reports">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Advanced Reports</CardTitle>
-                    <CardDescription>Generate comprehensive business reports</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-slate-600">Advanced reporting features available for admin users.</p>
-                  </CardContent>
-                </Card>
+                <ReportingCenter />
               </TabsContent>
             </>
           )}
