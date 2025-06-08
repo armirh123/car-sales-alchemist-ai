@@ -111,17 +111,25 @@ const InventoryOverview = () => {
   useEffect(() => {
     // Load initial market data
     loadMarketData();
+    
+    // Set up real-time data refresh every 30 seconds
+    const interval = setInterval(() => {
+      loadMarketData();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const loadMarketData = async () => {
     try {
       const data = await marketService.fetchMarketData();
       setMarketData(data);
+      console.log('Market data updated:', data.lastUpdated);
     } catch (error) {
       console.error('Failed to load market data:', error);
       toast({
         title: "Error",
-        description: "Failed to load market data",
+        description: "Failed to load real-time market data",
         variant: "destructive",
       });
     }
@@ -133,12 +141,12 @@ const InventoryOverview = () => {
       await loadMarketData();
       toast({
         title: "Data Refreshed",
-        description: "Market insights and stock alerts have been updated with the latest data.",
+        description: "Real-time market insights and stock alerts have been updated with the latest automotive industry data.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to refresh market data",
+        description: "Failed to refresh real-time market data",
         variant: "destructive",
       });
     } finally {
@@ -306,8 +314,13 @@ const InventoryOverview = () => {
       </div>
 
       {marketData?.lastUpdated && (
-        <div className="text-sm text-slate-500">
-          Last updated: {marketData.lastUpdated.toLocaleTimeString()}
+        <div className="text-sm text-slate-500 flex items-center space-x-2">
+          <span>Real-time data last updated: {marketData.lastUpdated.toLocaleTimeString()}</span>
+          {marketData.dataSource && (
+            <Badge variant="outline" className="text-xs">
+              {marketData.dataSource}
+            </Badge>
+          )}
         </div>
       )}
 
@@ -360,8 +373,8 @@ const InventoryOverview = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Stock Alerts</CardTitle>
-                <CardDescription>Real-time inventory notifications from market data</CardDescription>
+                <CardTitle>Live Stock Alerts</CardTitle>
+                <CardDescription>Real-time inventory notifications from automotive market feeds</CardDescription>
               </div>
               <Button 
                 variant="outline"
@@ -370,7 +383,7 @@ const InventoryOverview = () => {
                 disabled={isRefreshing}
               >
                 <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                {isRefreshing ? 'Updating...' : 'Refresh'}
               </Button>
             </div>
           </CardHeader>
@@ -396,15 +409,15 @@ const InventoryOverview = () => {
                 </div>
               </div>
             )) || (
-              <p className="text-slate-500">Loading alerts...</p>
+              <p className="text-slate-500">Loading real-time alerts...</p>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Market Insights</CardTitle>
-            <CardDescription>AI-powered real-time market analysis</CardDescription>
+            <CardTitle>Live Market Insights</CardTitle>
+            <CardDescription>AI-powered real-time automotive market analysis</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {marketData?.insights.map((insight) => (
@@ -430,7 +443,7 @@ const InventoryOverview = () => {
                 </div>
               </div>
             )) || (
-              <p className="text-slate-500">Loading insights...</p>
+              <p className="text-slate-500">Loading real-time insights...</p>
             )}
           </CardContent>
         </Card>
