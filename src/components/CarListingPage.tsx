@@ -108,7 +108,7 @@ const CarListingPage = ({ category, cars, onBack, onAddCar }: CarListingPageProp
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
           </Button>
-          <ManageStockDialog onAddCar={onAddCar} />
+          <ManageStockDialog onAddCar={onAddCar} currentCategory={category} />
         </div>
       </div>
 

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,9 +37,10 @@ interface Car {
 
 interface ManageStockDialogProps {
   onAddCar: (car: Car) => void;
+  currentCategory?: string;
 }
 
-const ManageStockDialog = ({ onAddCar }: ManageStockDialogProps) => {
+const ManageStockDialog = ({ onAddCar, currentCategory }: ManageStockDialogProps) => {
   const [open, setOpen] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [formData, setFormData] = useState({
@@ -48,13 +48,20 @@ const ManageStockDialog = ({ onAddCar }: ManageStockDialogProps) => {
     model: "",
     year: "",
     price: "",
-    category: "Sedans",
+    category: currentCategory || "Sedans",
     status: "available",
     description: "",
     mileage: "",
     color: ""
   });
   const { toast } = useToast();
+
+  // Update category when currentCategory prop changes
+  useState(() => {
+    if (currentCategory) {
+      setFormData(prev => ({ ...prev, category: currentCategory }));
+    }
+  });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -110,13 +117,13 @@ const ManageStockDialog = ({ onAddCar }: ManageStockDialogProps) => {
       description: "Vehicle added to inventory successfully"
     });
 
-    // Reset form
+    // Reset form but keep the current category
     setFormData({
       make: "",
       model: "",
       year: "",
       price: "",
-      category: "Sedans",
+      category: currentCategory || "Sedans",
       status: "available",
       description: "",
       mileage: "",
@@ -138,7 +145,7 @@ const ManageStockDialog = ({ onAddCar }: ManageStockDialogProps) => {
         <DialogHeader>
           <DialogTitle>Add New Vehicle</DialogTitle>
           <DialogDescription>
-            Add a new vehicle to your inventory
+            {currentCategory ? `Add a new vehicle to the ${currentCategory} category` : "Add a new vehicle to your inventory"}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -195,8 +202,12 @@ const ManageStockDialog = ({ onAddCar }: ManageStockDialogProps) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="category">Category</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({...prev, category: value}))}>
-                <SelectTrigger>
+              <Select 
+                value={formData.category} 
+                onValueChange={(value) => setFormData(prev => ({...prev, category: value}))}
+                disabled={!!currentCategory}
+              >
+                <SelectTrigger className={currentCategory ? "bg-slate-100" : ""}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -208,6 +219,11 @@ const ManageStockDialog = ({ onAddCar }: ManageStockDialogProps) => {
                   <SelectItem value="Sports">Sports</SelectItem>
                 </SelectContent>
               </Select>
+              {currentCategory && (
+                <p className="text-xs text-slate-500 mt-1">
+                  Automatically set to current category
+                </p>
+              )}
             </div>
             
             <div>
