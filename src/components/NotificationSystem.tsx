@@ -74,35 +74,39 @@ const NotificationSystem = () => {
   };
 
   const subscribeToRealTimeNotifications = () => {
-    // Subscribe to real-time updates that should trigger notifications
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'customer_communications'
-        },
-        (payload) => {
-          const newNotification: Notification = {
-            id: `comm_${payload.new.id}`,
-            title: 'Communication Sent',
-            message: `${payload.new.communication_type} sent successfully`,
-            type: 'success',
-            timestamp: new Date(),
-            read: false
-          };
-          
-          setNotifications(prev => [newNotification, ...prev]);
-          showBrowserNotification(newNotification);
-        }
-      )
-      .subscribe();
+    try {
+      // Subscribe to real-time updates that should trigger notifications
+      const channel = supabase
+        .channel('notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'customer_communications'
+          },
+          (payload) => {
+            const newNotification: Notification = {
+              id: `comm_${payload.new.id}`,
+              title: 'Communication Sent',
+              message: `${payload.new.communication_type} sent successfully`,
+              type: 'success',
+              timestamp: new Date(),
+              read: false
+            };
+            
+            setNotifications(prev => [newNotification, ...prev]);
+            showBrowserNotification(newNotification);
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } catch (error) {
+      console.error('Error subscribing to notifications:', error);
+    }
   };
 
   const showBrowserNotification = (notification: Notification) => {
