@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Car, TrendingUp, TrendingDown, AlertCircle, RefreshCw } from "lucide-react";
+import { Car, TrendingUp, TrendingDown, AlertCircle, RefreshCw, Truck, Zap, Crown, CarFront, Gem } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import CarListingPage from "./CarListingPage";
 import CategoryActions from "./CategoryActions";
@@ -200,6 +201,18 @@ const InventoryOverview = () => {
     });
   };
 
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'Sedans': return <CarFront className="h-5 w-5 text-slate-400" />;
+      case 'SUVs': return <Car className="h-5 w-5 text-slate-400" />;
+      case 'Electric': return <Zap className="h-5 w-5 text-slate-400" />;
+      case 'Trucks': return <Truck className="h-5 w-5 text-slate-400" />;
+      case 'Luxury': return <Crown className="h-5 w-5 text-slate-400" />;
+      case 'Sports': return <Gem className="h-5 w-5 text-slate-400" />;
+      default: return <Car className="h-5 w-5 text-slate-400" />;
+    }
+  };
+
   // Calculate inventory statistics
   const getInventoryStats = () => {
     return categories.map(category => {
@@ -289,21 +302,7 @@ const InventoryOverview = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-slate-900">Inventory Overview</h2>
-        <div className="flex space-x-2">
-          <AddCategoryDialog onAddCategory={handleAddCategory} />
-          <Button 
-            variant="outline"
-            onClick={handleRefreshData}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            Stock Alerts
-          </Button>
-        </div>
+        <AddCategoryDialog onAddCategory={handleAddCategory} />
       </div>
 
       {marketData?.lastUpdated && (
@@ -327,7 +326,7 @@ const InventoryOverview = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">{category.type}</CardTitle>
-                <Car className="h-5 w-5 text-slate-400" />
+                {getCategoryIcon(category.type)}
               </div>
               <div className="flex items-center space-x-2">
                 <Badge className={getStatusColor(category.status)}>
@@ -359,8 +358,21 @@ const InventoryOverview = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Stock Alerts</CardTitle>
-            <CardDescription>Real-time inventory notifications</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Stock Alerts</CardTitle>
+                <CardDescription>Real-time inventory notifications from market data</CardDescription>
+              </div>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleRefreshData}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {marketData?.alerts.map((alert) => (

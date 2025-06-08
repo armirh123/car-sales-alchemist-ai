@@ -113,13 +113,13 @@ const CarListingPage = ({ category, cars, onBack, onAddCar }: CarListingPageProp
 
       {/* Search and Filter Controls */}
       <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-w-0 md:min-w-[350px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
           <Input
             placeholder="Search by make, model, or color..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full"
           />
         </div>
         
