@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Car, TrendingUp, Users, MessageCircle, Target, BarChart3, PlusCircle, Search, Menu, Settings, Calendar, Bell, Shield } from "lucide-react";
+import { Car, TrendingUp, Users, MessageCircle, Target, BarChart3, PlusCircle, Search, Menu, Settings, Calendar, Bell, Shield, DollarSign } from "lucide-react";
 import DashboardMetrics from "@/components/DashboardMetrics";
 import LeadManagement from "@/components/LeadManagement";
 import AIAssistant from "@/components/AIAssistant";
@@ -21,6 +21,8 @@ import UserNotifications from "@/components/UserNotifications";
 import ReportingCenter from "@/components/ReportingCenter";
 import InventoryIQLogo from "@/components/InventoryIQLogo";
 import UpcomingAppointmentsPopup from "@/components/UpcomingAppointmentsPopup";
+import CustomerManagement from "@/components/CustomerManagement";
+import FinancialManagement from "@/components/FinancialManagement";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("inventory");
@@ -201,11 +203,15 @@ const Index = () => {
           {/* Role-based tab layouts */}
           <div className="overflow-x-auto">
             {isAdmin ? (
-              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-6">
+              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-8">
                 <TabsTrigger value="dashboard" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Dashboard</span>
                   <span className="xs:hidden">Stats</span>
+                </TabsTrigger>
+                <TabsTrigger value="customers" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Customers</span>
                 </TabsTrigger>
                 <TabsTrigger value="leads" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -215,6 +221,11 @@ const Index = () => {
                   <Car className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Inventory</span>
                   <span className="xs:hidden">Cars</span>
+                </TabsTrigger>
+                <TabsTrigger value="financial" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Financial</span>
+                  <span className="xs:hidden">$</span>
                 </TabsTrigger>
                 <TabsTrigger value="ai-assistant" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -233,15 +244,24 @@ const Index = () => {
                 </TabsTrigger>
               </TabsList>
             ) : isManager ? (
-              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-5">
+              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-7">
                 <TabsTrigger value="inventory" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <Car className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Inventory</span>
                   <span className="xs:hidden">Cars</span>
                 </TabsTrigger>
+                <TabsTrigger value="customers" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Customers</span>
+                </TabsTrigger>
                 <TabsTrigger value="leads" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span>Leads</span>
+                </TabsTrigger>
+                <TabsTrigger value="financial" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Financial</span>
+                  <span className="xs:hidden">$</span>
                 </TabsTrigger>
                 <TabsTrigger value="dashboard" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -260,11 +280,15 @@ const Index = () => {
                 </TabsTrigger>
               </TabsList>
             ) : (
-              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-4">
+              <TabsList className="grid w-full min-w-max sm:w-auto grid-cols-5">
                 <TabsTrigger value="inventory" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <Car className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">Inventory</span>
                   <span className="xs:hidden">Cars</span>
+                </TabsTrigger>
+                <TabsTrigger value="customers" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>Customers</span>
                 </TabsTrigger>
                 <TabsTrigger value="calendar" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-4">
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -319,6 +343,18 @@ const Index = () => {
           {(isAdmin || isManager) && (
             <TabsContent value="leads">
               <LeadManagement />
+            </TabsContent>
+          )}
+
+          {/* New Customer Management Tab */}
+          <TabsContent value="customers">
+            <CustomerManagement />
+          </TabsContent>
+
+          {/* New Financial Management Tab */}
+          {(isAdmin || isManager) && (
+            <TabsContent value="financial">
+              <FinancialManagement />
             </TabsContent>
           )}
 
