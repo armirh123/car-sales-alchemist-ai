@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Phone, Mail, Calendar, Filter, Edit, Trash2, Plus } from "lucide-react";
+import { Search, Phone, Mail, Calendar, Filter, Edit, Trash2, Plus, Users } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -35,31 +35,7 @@ const LeadManagement = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  // Sample data - in real app this would come from your database
-  const [leads, setLeads] = useState<Lead[]>([
-    {
-      id: 1,
-      name: "Johnson Motors",
-      contact: "Sarah Johnson",
-      email: isAdmin ? "sarah@johnsonmotors.com" : "***@***.com",
-      phone: isAdmin ? "(555) 123-4567" : "(***) ***-****",
-      interest: "Luxury Sedans",
-      status: "hot",
-      lastContact: "2 days ago",
-      value: isAdmin ? "$125,000" : "$***,***"
-    },
-    {
-      id: 2,
-      name: "Metro Auto Group",
-      contact: "Mike Chen",
-      email: isAdmin ? "mike@metroauto.com" : "***@***.com",
-      phone: isAdmin ? "(555) 234-5678" : "(***) ***-****",
-      interest: "Electric Vehicles",
-      status: "warm",
-      lastContact: "1 week ago",
-      value: isAdmin ? "$85,000" : "$**,***"
-    }
-  ]);
+  const [leads, setLeads] = useState<Lead[]>([]);
 
   const handleAddLead = (newLead: Lead) => {
     if (!isAdmin) {
@@ -128,7 +104,6 @@ const LeadManagement = () => {
     }
   };
 
-  // Filter leads by search term and status
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -172,115 +147,138 @@ const LeadManagement = () => {
         </Select>
       </div>
 
-      <div className="grid gap-4">
-        {filteredLeads.map((lead) => (
-          <Card key={lead.id} className="hover:shadow-md transition-shadow duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-lg font-semibold text-slate-900">{lead.name}</h3>
-                    <Badge className={getStatusColor(lead.status)}>
-                      {lead.status.toUpperCase()}
-                    </Badge>
-                    <Badge variant="outline" className="text-green-600 border-green-200">
-                      {lead.value}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Contact Person</p>
-                      <p className="text-sm text-slate-600">{lead.contact}</p>
+      {leads.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="h-5 w-5 mr-2" />
+              No Leads Found
+            </CardTitle>
+            <CardDescription>
+              {isAdmin ? "Start building your sales pipeline by adding leads" : "No leads available to display"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-slate-600 mb-4">
+              {isAdmin 
+                ? "Your lead pipeline is empty. Use the 'Add Lead' button to start adding potential customers and track your sales opportunities."
+                : "Your administrator hasn't added any leads yet, or you don't have permission to view them."
+              }
+            </p>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-sm text-green-600">
+                Ready for real lead data
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {filteredLeads.map((lead) => (
+            <Card key={lead.id} className="hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-lg font-semibold text-slate-900">{lead.name}</h3>
+                      <Badge className={getStatusColor(lead.status)}>
+                        {lead.status.toUpperCase()}
+                      </Badge>
+                      <Badge variant="outline" className="text-green-600 border-green-200">
+                        {lead.value}
+                      </Badge>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Interest</p>
-                      <p className="text-sm text-slate-600">{lead.interest}</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">Contact Person</p>
+                        <p className="text-sm text-slate-600">{lead.contact}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">Interest</p>
+                        <p className="text-sm text-slate-600">{lead.interest}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">Last Contact</p>
+                        <p className="text-sm text-slate-600">{lead.lastContact}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">Last Contact</p>
-                      <p className="text-sm text-slate-600">{lead.lastContact}</p>
+
+                    <div className="flex items-center space-x-4 mt-4 text-sm text-slate-600">
+                      <span className="flex items-center space-x-1">
+                        <Mail className="h-4 w-4" />
+                        <span>{isAdmin ? lead.email : "***@***.com"}</span>
+                      </span>
+                      <span className="flex items-center space-x-1">
+                        <Phone className="h-4 w-4" />
+                        <span>{isAdmin ? lead.phone : "(***) ***-****"}</span>
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-4 mt-4 text-sm text-slate-600">
-                    <span className="flex items-center space-x-1">
-                      <Mail className="h-4 w-4" />
-                      <span>{lead.email}</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <Phone className="h-4 w-4" />
-                      <span>{lead.phone}</span>
-                    </span>
+                  <div className="flex flex-col space-y-2 ml-4">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleContactAction('Call')}
+                      disabled={!isAdmin}
+                    >
+                      <Phone className="h-4 w-4 mr-1" />
+                      Call
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleContactAction('Email')}
+                      disabled={!isAdmin}
+                    >
+                      <Mail className="h-4 w-4 mr-1" />
+                      Email
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleContactAction('Schedule')}
+                      disabled={!isAdmin}
+                    >
+                      <Calendar className="h-4 w-4 mr-1" />
+                      Schedule
+                    </Button>
+                    {isAdmin && (
+                      <>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={handleEditLead}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleDeleteLead(lead.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-                <div className="flex flex-col space-y-2 ml-4">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleContactAction('Call')}
-                    disabled={!isAdmin}
-                  >
-                    <Phone className="h-4 w-4 mr-1" />
-                    Call
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleContactAction('Email')}
-                    disabled={!isAdmin}
-                  >
-                    <Mail className="h-4 w-4 mr-1" />
-                    Email
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleContactAction('Schedule')}
-                    disabled={!isAdmin}
-                  >
-                    <Calendar className="h-4 w-4 mr-1" />
-                    Schedule
-                  </Button>
-                  {isAdmin && (
-                    <>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={handleEditLead}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleDeleteLead(lead.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredLeads.length === 0 && (
+      {filteredLeads.length === 0 && leads.length > 0 && (
         <div className="text-center py-12">
           <div className="text-lg font-medium text-slate-900 mb-2">No leads found</div>
           <p className="text-slate-500">
-            {searchTerm || statusFilter !== "all" 
-              ? "No leads match your current filters" 
-              : isAdmin 
-                ? "Start by adding your first lead"
-                : "No leads available to display"
-            }
+            No leads match your current filters
           </p>
         </div>
       )}

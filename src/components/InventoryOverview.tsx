@@ -25,82 +25,7 @@ interface Car {
 
 const InventoryOverview = () => {
   const { toast } = useToast();
-  const [cars, setCars] = useState<Car[]>([
-    // Sample cars for demonstration
-    {
-      id: "1",
-      make: "Toyota",
-      model: "Camry",
-      year: 2023,
-      price: 28500,
-      category: "Sedans",
-      status: "available",
-      description: "Reliable family sedan with excellent fuel economy",
-      mileage: 15000,
-      color: "Silver"
-    },
-    {
-      id: "2",
-      make: "Honda",
-      model: "Accord",
-      year: 2024,
-      price: 32000,
-      category: "Sedans",
-      status: "available",
-      description: "Premium sedan with advanced safety features",
-      mileage: 8000,
-      color: "Black"
-    },
-    {
-      id: "3",
-      make: "Ford",
-      model: "Explorer",
-      year: 2023,
-      price: 38000,
-      category: "SUVs",
-      status: "available",
-      description: "Spacious SUV perfect for families",
-      mileage: 22000,
-      color: "Blue"
-    },
-    {
-      id: "4",
-      make: "Tesla",
-      model: "Model 3",
-      year: 2024,
-      price: 45000,
-      category: "Electric",
-      status: "available",
-      description: "All-electric sedan with autopilot capabilities",
-      mileage: 5000,
-      color: "White"
-    },
-    {
-      id: "5",
-      make: "Ford",
-      model: "F-150",
-      year: 2023,
-      price: 42000,
-      category: "Trucks",
-      status: "reserved",
-      description: "America's best-selling truck",
-      mileage: 18000,
-      color: "Red"
-    },
-    {
-      id: "6",
-      make: "BMW",
-      model: "5 Series",
-      year: 2024,
-      price: 55000,
-      category: "Luxury",
-      status: "available",
-      description: "Luxury sedan with premium interior",
-      mileage: 3000,
-      color: "Grey"
-    }
-  ]);
-
+  const [cars, setCars] = useState<Car[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>(["Sedans", "SUVs", "Electric", "Trucks", "Luxury", "Sports"]);
   const [marketData, setMarketData] = useState<MarketData | null>(null);
@@ -109,10 +34,8 @@ const InventoryOverview = () => {
   const marketService = MarketDataService.getInstance();
 
   useEffect(() => {
-    // Load initial market data
     loadMarketData();
     
-    // Set up real-time data refresh every 30 seconds
     const interval = setInterval(() => {
       loadMarketData();
     }, 30000);
@@ -221,21 +144,10 @@ const InventoryOverview = () => {
     }
   };
 
-  // Calculate inventory statistics
   const getInventoryStats = () => {
     return categories.map(category => {
       const categoryCars = cars.filter(car => car.category === category);
       const availableCount = categoryCars.filter(car => car.status === "available").length;
-      
-      // Mock trend data
-      const trendData: Record<string, { trend: string; change: string }> = {
-        "Sedans": { trend: "up", change: "+12%" },
-        "SUVs": { trend: "down", change: "-23%" },
-        "Electric": { trend: "up", change: "+45%" },
-        "Trucks": { trend: "up", change: "+8%" },
-        "Luxury": { trend: "down", change: "-5%" },
-        "Sports": { trend: "up", change: "+20%" }
-      };
 
       const getStatus = (count: number) => {
         if (count === 0) return "critical";
@@ -245,14 +157,14 @@ const InventoryOverview = () => {
 
       const getPopularModels = () => {
         const models = categoryCars.slice(0, 2).map(car => `${car.make} ${car.model}`);
-        return models.length > 0 ? models.join(", ") : "No vehicles";
+        return models.length > 0 ? models.join(", ") : "No vehicles in inventory";
       };
 
       return {
         type: category,
         count: availableCount,
-        trend: trendData[category]?.trend || "up",
-        change: trendData[category]?.change || "0%",
+        trend: "up",
+        change: "+0%",
         popular: getPopularModels(),
         status: getStatus(availableCount)
       };
@@ -322,6 +234,32 @@ const InventoryOverview = () => {
             </Badge>
           )}
         </div>
+      )}
+
+      {cars.length === 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Car className="h-5 w-5 mr-2" />
+              No Vehicles in Inventory
+            </CardTitle>
+            <CardDescription>
+              Get started by adding vehicles to your inventory through the admin panel
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-slate-600 mb-4">
+              Your inventory is empty. Use the car listing pages to add vehicles to each category, 
+              or contact your system administrator to import vehicle data.
+            </p>
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-4 w-4 text-orange-500" />
+              <span className="text-sm text-orange-600">
+                Ready for real vehicle data input
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

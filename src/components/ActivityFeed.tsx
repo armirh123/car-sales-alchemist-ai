@@ -28,59 +28,8 @@ const ActivityFeed = () => {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
-    // Mock activity data - in real implementation, this would come from the database
-    const mockActivities: ActivityItem[] = [
-      {
-        id: '1',
-        type: 'customer_added',
-        title: 'New Customer Added',
-        description: 'John Smith was added to the pipeline as a hot lead',
-        timestamp: new Date(Date.now() - 5 * 60 * 1000),
-        user: 'Sarah Johnson'
-      },
-      {
-        id: '2',
-        type: 'communication_sent',
-        title: 'Email Sent',
-        description: 'Follow-up email sent to Emma Wilson regarding vehicle inquiry',
-        timestamp: new Date(Date.now() - 15 * 60 * 1000),
-        user: 'Mike Chen'
-      },
-      {
-        id: '3',
-        type: 'deal_updated',
-        title: 'Deal Stage Updated',
-        description: 'David Brown moved from Lead to Negotiating stage',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        user: 'Sarah Johnson'
-      },
-      {
-        id: '4',
-        type: 'meeting_scheduled',
-        title: 'Meeting Scheduled',
-        description: 'Test drive appointment set with Lisa Davis for tomorrow 2 PM',
-        timestamp: new Date(Date.now() - 45 * 60 * 1000),
-        user: 'Mike Chen'
-      },
-      {
-        id: '5',
-        type: 'sale_completed',
-        title: 'Sale Completed',
-        description: 'Tom Wilson purchased 2024 Honda Accord - $35,000',
-        timestamp: new Date(Date.now() - 60 * 60 * 1000),
-        user: 'Sarah Johnson'
-      },
-      {
-        id: '6',
-        type: 'communication_sent',
-        title: 'SMS Sent',
-        description: 'Appointment reminder sent to Maria Garcia',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        user: 'Mike Chen'
-      }
-    ];
-
-    setActivities(mockActivities);
+    // Start with empty activities - real activities will be added through user actions
+    setActivities([]);
   }, []);
 
   const getActivityIcon = (type: string) => {
@@ -129,30 +78,43 @@ const ActivityFeed = () => {
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[400px]">
-          <div className="space-y-4">
-            {activities.map((activity) => (
-              <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
-                  {getActivityIcon(activity.type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium">{activity.title}</h4>
-                    <span className="text-xs text-gray-500">
-                      {formatTimeAgo(activity.timestamp)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-500">by {activity.user}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {activity.type.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                </div>
+          {activities.length === 0 ? (
+            <div className="text-center py-12">
+              <Activity className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Activity Yet</h3>
+              <p className="text-gray-500 text-sm">
+                Activity will appear here as team members interact with customers, update deals, and perform other actions in the system.
+              </p>
+              <div className="mt-4 text-xs text-gray-400">
+                Ready to track real team activity
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activities.map((activity) => (
+                <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className={`p-2 rounded-full ${getActivityColor(activity.type)}`}>
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">{activity.title}</h4>
+                      <span className="text-xs text-gray-500">
+                        {formatTimeAgo(activity.timestamp)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-gray-500">by {activity.user}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {activity.type.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </ScrollArea>
       </CardContent>
     </Card>

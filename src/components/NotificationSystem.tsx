@@ -32,50 +32,17 @@ const NotificationSystem = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    fetchNotifications();
+    // Start with empty notifications - real notifications will be generated from user actions
+    setNotifications([]);
     subscribeToRealTimeNotifications();
     
-    // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
   }, []);
 
-  const fetchNotifications = async () => {
-    // Mock notifications - in real implementation, these would come from the database
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        title: 'New Customer Added',
-        message: 'John Smith has been added to your pipeline',
-        type: 'info',
-        timestamp: new Date(Date.now() - 5 * 60 * 1000),
-        read: false
-      },
-      {
-        id: '2',
-        title: 'Follow-up Reminder',
-        message: 'You have 3 follow-ups due today',
-        type: 'warning',
-        timestamp: new Date(Date.now() - 15 * 60 * 1000),
-        read: false
-      },
-      {
-        id: '3',
-        title: 'Deal Closed',
-        message: 'Emma Wilson completed her purchase - $35,000',
-        type: 'success',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        read: true
-      }
-    ];
-
-    setNotifications(mockNotifications);
-  };
-
   const subscribeToRealTimeNotifications = () => {
     try {
-      // Subscribe to real-time updates that should trigger notifications
       const channel = supabase
         .channel('notifications')
         .on(
@@ -199,7 +166,11 @@ const NotificationSystem = () => {
         <ScrollArea className="h-96">
           {notifications.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
-              No notifications yet
+              <Bell className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm">No notifications yet</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Notifications will appear here when actions occur in the system
+              </p>
             </div>
           ) : (
             <div className="divide-y">

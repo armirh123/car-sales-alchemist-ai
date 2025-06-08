@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,34 +30,8 @@ const Index = () => {
   const { user, isLoading } = useAuth();
   const { tenant } = useTenant();
 
-  // Sample appointments data for the popup (in real app, this would come from a context or API)
-  const sampleAppointments = [
-    {
-      id: "1",
-      title: "Test Drive - Honda Civic",
-      description: "Customer interested in 2024 Honda Civic Sport",
-      date: new Date(),
-      time: "10:00 AM",
-      type: "test_drive" as const,
-      client: "John Smith",
-      phone: "(555) 123-4567",
-      location: "Main Lot",
-      status: "scheduled" as const,
-      priority: "high" as const
-    },
-    {
-      id: "2",
-      title: "Follow-up Call - Sarah Johnson",
-      description: "Discussing financing options",
-      date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-      time: "2:00 PM",
-      type: "follow_up" as const,
-      client: "Sarah Johnson",
-      phone: "(555) 987-6543",
-      status: "scheduled" as const,
-      priority: "medium" as const
-    }
-  ];
+  // Empty appointments array - real appointments will be added through admin actions
+  const sampleAppointments = [];
 
   if (isLoading) {
     return (
@@ -154,7 +129,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {user && <UpcomingAppointmentsPopup appointments={sampleAppointments} />}
+      {user && sampleAppointments.length > 0 && <UpcomingAppointmentsPopup appointments={sampleAppointments} />}
       
       {/* Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm">
@@ -178,7 +153,7 @@ const Index = () => {
 
             <div className="flex items-center space-x-2 sm:space-x-4">
               <Badge variant="secondary" className="hidden sm:inline-flex bg-green-100 text-green-800 text-xs">
-                Active Account
+                Market Ready
               </Badge>
               {isAdmin && (
                 <Badge variant="default" className="hidden sm:inline-flex text-xs">

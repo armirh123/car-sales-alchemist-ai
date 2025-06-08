@@ -81,7 +81,6 @@ const TeamChat = () => {
 
   const fetchChannels = async () => {
     try {
-      // Use any type to bypass TypeScript checking for the missing table
       const { data, error } = await (supabase as any)
         .from('chat_channels')
         .select('*')
@@ -98,7 +97,6 @@ const TeamChat = () => {
       }
     } catch (error) {
       console.error('Error fetching channels:', error);
-      // Set mock data if there's an error
       setChannels([
         { id: '1', name: 'General', type: 'general', description: 'General team discussion' }
       ]);
@@ -110,7 +108,6 @@ const TeamChat = () => {
     if (!activeChannel) return;
 
     try {
-      // Use any type to bypass TypeScript checking for the missing table
       const { data, error } = await (supabase as any)
         .from('chat_messages')
         .select(`
@@ -137,7 +134,6 @@ const TeamChat = () => {
 
   const fetchUserPresence = async () => {
     try {
-      // Use any type to bypass TypeScript checking for the missing table
       const { data, error } = await (supabase as any)
         .from('user_presence')
         .select(`
@@ -165,7 +161,6 @@ const TeamChat = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use any type to bypass TypeScript checking for the missing table
       const { error } = await (supabase as any)
         .from('user_presence')
         .upsert({
@@ -212,7 +207,6 @@ const TeamChat = () => {
     if (!newMessage.trim() || !activeChannel || !currentUser) return;
 
     try {
-      // Use any type to bypass TypeScript checking for the missing table
       const { error } = await (supabase as any)
         .from('chat_messages')
         .insert({
@@ -280,44 +274,64 @@ const TeamChat = () => {
           
           <TabsContent value="channels" className="h-full mt-0">
             <ScrollArea className="h-[520px]">
-              {channels.map((channel) => (
-                <div
-                  key={channel.id}
-                  className={`p-3 cursor-pointer hover:bg-gray-50 ${
-                    activeChannel === channel.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-                  }`}
-                  onClick={() => setActiveChannel(channel.id)}
-                >
-                  <div className="font-medium">#{channel.name}</div>
-                  {channel.description && (
-                    <div className="text-sm text-gray-500">{channel.description}</div>
-                  )}
+              {channels.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">
+                  <MessageCircle className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm">No chat channels yet</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Channels will be created by administrators
+                  </p>
                 </div>
-              ))}
+              ) : (
+                channels.map((channel) => (
+                  <div
+                    key={channel.id}
+                    className={`p-3 cursor-pointer hover:bg-gray-50 ${
+                      activeChannel === channel.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
+                    }`}
+                    onClick={() => setActiveChannel(channel.id)}
+                  >
+                    <div className="font-medium">#{channel.name}</div>
+                    {channel.description && (
+                      <div className="text-sm text-gray-500">{channel.description}</div>
+                    )}
+                  </div>
+                ))
+              )}
             </ScrollArea>
           </TabsContent>
           
           <TabsContent value="users" className="h-full mt-0">
             <ScrollArea className="h-[520px]">
-              {userPresence.map((user) => (
-                <div key={user.user_id} className="p-3 flex items-center space-x-3">
-                  <div className="relative">
-                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                      {user.profiles?.first_name?.charAt(0) || 'U'}
-                    </div>
-                    <Circle
-                      className={`absolute -bottom-1 -right-1 w-3 h-3 ${getStatusColor(user.status)} rounded-full border-2 border-white`}
-                      fill="currentColor"
-                    />
-                  </div>
-                  <div>
-                    <div className="font-medium text-sm">
-                      {user.profiles?.first_name} {user.profiles?.last_name}
-                    </div>
-                    <div className="text-xs text-gray-500 capitalize">{user.status}</div>
-                  </div>
+              {userPresence.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">
+                  <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm">No team members online</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Team presence will show here when users are active
+                  </p>
                 </div>
-              ))}
+              ) : (
+                userPresence.map((user) => (
+                  <div key={user.user_id} className="p-3 flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        {user.profiles?.first_name?.charAt(0) || 'U'}
+                      </div>
+                      <Circle
+                        className={`absolute -bottom-1 -right-1 w-3 h-3 ${getStatusColor(user.status)} rounded-full border-2 border-white`}
+                        fill="currentColor"
+                      />
+                    </div>
+                    <div>
+                      <div className="font-medium text-sm">
+                        {user.profiles?.first_name} {user.profiles?.last_name}
+                      </div>
+                      <div className="text-xs text-gray-500 capitalize">{user.status}</div>
+                    </div>
+                  </div>
+                ))
+              )}
             </ScrollArea>
           </TabsContent>
         </Tabs>
@@ -334,19 +348,29 @@ const TeamChat = () => {
 
         {/* Messages */}
         <ScrollArea className="flex-1 p-4">
-          {messages.map((message) => (
-            <div key={message.id} className="mb-4">
-              <div className="flex items-center space-x-2 mb-1">
-                <span className="font-medium text-sm">
-                  {message.profiles?.first_name} {message.profiles?.last_name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {formatTime(message.created_at)}
-                </span>
-              </div>
-              <div className="text-sm">{message.content}</div>
+          {messages.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <MessageCircle className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm">No messages yet</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Start the conversation by sending a message
+              </p>
             </div>
-          ))}
+          ) : (
+            messages.map((message) => (
+              <div key={message.id} className="mb-4">
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="font-medium text-sm">
+                    {message.profiles?.first_name} {message.profiles?.last_name}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatTime(message.created_at)}
+                  </span>
+                </div>
+                <div className="text-sm">{message.content}</div>
+              </div>
+            ))
+          )}
           <div ref={messagesEndRef} />
         </ScrollArea>
 
