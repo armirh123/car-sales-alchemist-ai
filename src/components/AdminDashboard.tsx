@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,9 +11,12 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import ReportingCenter from "./ReportingCenter";
+import AuditLog from "./AuditLog";
+import LoadingSpinner from "./LoadingSpinner";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -46,10 +48,16 @@ const AdminDashboard = () => {
     );
   }
 
-  const handleQuickAction = (action: string) => {
+  const handleQuickAction = async (action: string) => {
+    setIsLoading(true);
+    
+    // Simulate action processing
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setIsLoading(false);
     toast({
-      title: "Action Initiated",
-      description: `${action} has been started and will be completed shortly`
+      title: "Action Completed",
+      description: `${action} has been completed successfully`
     });
   };
 
@@ -167,38 +175,44 @@ const AdminDashboard = () => {
                   <CardDescription>Common administrative tasks</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleQuickAction('User export')}
-                  >
-                    <Users className="mr-2 h-4 w-4" />
-                    Export User Data
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleQuickAction('System backup')}
-                  >
-                    <Database className="mr-2 h-4 w-4" />
-                    Create System Backup
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleQuickAction('Performance report')}
-                  >
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    Generate Performance Report
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => handleQuickAction('System notification')}
-                  >
-                    <Bell className="mr-2 h-4 w-4" />
-                    Send System Notification
-                  </Button>
+                  {isLoading ? (
+                    <LoadingSpinner text="Processing action..." />
+                  ) : (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => handleQuickAction('User export')}
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        Export User Data
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => handleQuickAction('System backup')}
+                      >
+                        <Database className="mr-2 h-4 w-4" />
+                        Create System Backup
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => handleQuickAction('Performance report')}
+                      >
+                        <BarChart3 className="mr-2 h-4 w-4" />
+                        Generate Performance Report
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => handleQuickAction('System notification')}
+                      >
+                        <Bell className="mr-2 h-4 w-4" />
+                        Send System Notification
+                      </Button>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
@@ -222,7 +236,10 @@ const AdminDashboard = () => {
         </TabsContent>
 
         <TabsContent value="reports">
-          <ReportingCenter />
+          <div className="space-y-6">
+            <ReportingCenter />
+            <AuditLog />
+          </div>
         </TabsContent>
 
         <TabsContent value="users">

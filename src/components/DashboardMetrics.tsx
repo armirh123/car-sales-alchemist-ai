@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,12 +8,28 @@ import { useAuth } from "@/contexts/AuthContext";
 import SalesDetailsDialog from "./SalesDetailsDialog";
 import AddDataDialog from "./AddDataDialog";
 import ManageSystemDialog from "./ManageSystemDialog";
+import LoadingSpinner from "./LoadingSpinner";
+import SkeletonLoader from "./SkeletonLoader";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { useUndoRedo } from "@/hooks/useUndoRedo";
 
 const DashboardMetrics = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+
+  // Enhanced data management with undo/redo
+  const [sampleData, setSampleData] = useLocalStorage('dashboardSampleData', []);
+  const { 
+    state: metricsState, 
+    set: setMetricsState, 
+    undo, 
+    redo, 
+    canUndo, 
+    canRedo 
+  } = useUndoRedo(sampleData);
 
   // Empty employee data - ready for real data
   const [employeeData] = useState([]);
@@ -109,17 +124,48 @@ const DashboardMetrics = () => {
     }
 
     setIsRefreshing(true);
+    setIsLoading(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Simulate API call delay with better loading
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     setIsRefreshing(false);
+    setIsLoading(false);
     
     toast({
       title: "Data refreshed",
       description: "Dashboard metrics have been updated with the latest data"
     });
   };
+
+  const handleAddSampleData = () => {
+    const newSampleData = [
+      { id: 1, type: 'sale', amount: 25000, date: new Date().toISOString() },
+      { id: 2, type: 'lead', contact: 'john@example.com', status: 'hot' },
+      { id: 3, type: 'car', make: 'Toyota', model: 'Camry', status: 'available' }
+    ];
+    setSampleData(newSampleData);
+    setMetricsState(newSampleData);
+    
+    toast({
+      title: "Sample data added",
+      description: "Demo data has been added to showcase functionality"
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-900">
+            {isAdmin ? "Admin Dashboard" : "Sales Overview"}
+          </h2>
+          <LoadingSpinner text="Loading dashboard..." />
+        </div>
+        <SkeletonLoader type="metrics" />
+      </div>
+    );
+  }
 
   const renderMetricCard = (metric: any, index: number) => {
     const Icon = metric.icon;
@@ -163,6 +209,37 @@ const DashboardMetrics = () => {
         <div className="flex items-center space-x-2">
           {isAdmin && (
             <>
+              {(canUndo || canRedo) && (
+                <div className="flex items-center space-x-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={undo}
+                    disabled={!canUndo}
+                    title="Undo (Ctrl+Z)"
+                  >
+                    ↶
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={redo}
+                    disabled={!canRedo}
+                    title="Redo (Ctrl+Y)"
+                  >
+                    ↷
+                  </Button>
+                </div>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleAddSampleData}
+                className="text-green-600 border-green-200"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Sample Data
+              </Button>
               <AddDataDialog>
                 <Button 
                   variant="outline" 

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,9 @@ import InventoryIQLogo from "@/components/InventoryIQLogo";
 import UpcomingAppointmentsPopup from "@/components/UpcomingAppointmentsPopup";
 import CustomerManagement from "@/components/CustomerManagement";
 import FinancialManagement from "@/components/FinancialManagement";
+import OnboardingTour from "@/components/OnboardingTour";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("inventory");
@@ -36,6 +38,35 @@ const Index = () => {
 
   // Empty appointments array - real appointments will be added through admin actions
   const sampleAppointments = [];
+
+  const { isOnline, pendingActions } = useOfflineSync();
+
+  const shortcuts = useKeyboardShortcuts([
+    {
+      key: 'h',
+      ctrlKey: true,
+      callback: () => setActiveView('dashboard'),
+      description: 'Go to Dashboard'
+    },
+    {
+      key: 'i',
+      ctrlKey: true, 
+      callback: () => setActiveView('inventory'),
+      description: 'Go to Inventory'
+    },
+    {
+      key: 'c',
+      ctrlKey: true,
+      callback: () => setActiveView('customers'),
+      description: 'Go to Customers'
+    },
+    {
+      key: 'l',
+      ctrlKey: true,
+      callback: () => setActiveView('leads'),
+      description: 'Go to Leads'
+    }
+  ]);
 
   if (isLoading) {
     return (
@@ -132,8 +163,13 @@ const Index = () => {
   const isSalesperson = user?.role === 'salesperson';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {user && sampleAppointments.length > 0 && <UpcomingAppointmentsPopup appointments={sampleAppointments} />}
+    <div className="min-h-screen bg-slate-50">
+      <OnboardingTour />
+      {!isOnline && (
+        <div className="bg-orange-500 text-white px-4 py-2 text-center text-sm">
+          Working offline {pendingActions > 0 && `• ${pendingActions} changes pending sync`}
+        </div>
+      )}
       
       {/* Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm">
