@@ -16,6 +16,7 @@ import { AdminLoginDialog } from "@/components/AdminLoginDialog";
 import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { useSessionManager } from "@/hooks/useSessionManager";
 import AdminDashboard from "@/components/AdminDashboard";
 import UserCalendar from "@/components/UserCalendar";
 import UserNotifications from "@/components/UserNotifications";
@@ -29,6 +30,9 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("inventory");
   const { user, isLoading } = useAuth();
   const { tenant } = useTenant();
+
+  // Initialize session manager for logged-in users
+  useSessionManager();
 
   // Empty appointments array - real appointments will be added through admin actions
   const sampleAppointments = [];

@@ -20,13 +20,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const { profile, company, clearUserState, fetchUserData } = useAuthData();
   const { login, adminLogin: adminLoginAction, signUp, logout: authLogout } = useAuthActions();
 
   const handleUserData = async (userId: string) => {
     console.log('handleUserData called for:', userId);
-    setIsLoading(true);
     
     try {
       const userData = await fetchUserData(userId);
@@ -35,12 +35,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
       } else {
         console.warn('No user data returned');
-        // Don't clear the user state immediately, let the auth state change handle it
       }
     } catch (error) {
       console.error('Error in handleUserData:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -87,9 +84,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
+    const initializeAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (error) {
+          console.error('Error getting initial session:', error);
+          setIsLoading(false);
+          setIsInitialized(true);
+          return;
+        }
+
+        console.log('Initial session check:', session?.user?.email);
+        setSession(session);
+        
+        if (session?.user) {
+          await handleUserData(session.user.id);
+        }
+        
+        setIsLoading(false);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        if (mounted) {
+          setIsLoading(false);
+          setIsInitialized(true);
+        }
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (!mounted) return;
 
         console.log('Auth state changed:', event, session?.user?.email);
@@ -99,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           // Only fetch user data for regular auth users, not admin users
           if (!user?.isAdminUser) {
-            handleUserData(session.user.id);
+            await handleUserData(session.user.id);
           }
         } else {
           // Only clear user state if it's not an admin user
@@ -108,35 +137,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             clearUserState();
             setUser(null);
           }
-          setIsLoading(false);
+          if (isInitialized) {
+            setIsLoading(false);
+          }
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (!mounted) return;
-      
-      if (error) {
-        console.error('Error getting session:', error);
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('Initial session check:', session?.user?.email);
-      setSession(session);
-      if (session?.user) {
-        handleUserData(session.user.id);
-      } else {
-        setIsLoading(false);
-      }
-    });
+    // Initialize auth
+    initializeAuth();
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // Remove user dependency to avoid infinite loops
+  }, []); // Remove dependencies to avoid infinite loops
 
   const value: AuthContextType = {
     user,
